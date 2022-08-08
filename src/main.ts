@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { createConnection } from 'typeorm';
 
 dotenv.config({
   path: path.resolve(
@@ -12,6 +13,10 @@ dotenv.config({
       : '.development.env',
   ),
 });
+
+createConnection()
+  .then(async (connection) => {})
+  .catch((error) => console.log(error));
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
