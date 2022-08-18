@@ -1,5 +1,6 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { Bucket } from './entities/buckets.entity';
+import { EntityRepository } from '@mikro-orm/postgresql';
+import { Bucket } from '../entities/buckets.entity';
 
-@EntityRepository(Bucket)
-export class BucketsRepository extends Repository<Bucket> {}
+export class BucketsRepository extends EntityRepository<Bucket> {
+  // code
+}

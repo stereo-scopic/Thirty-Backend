@@ -1,18 +1,19 @@
-import { NestModule, MiddlewareConsumer, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DatabaseModule } from './database/database.module';
-import { DataSource } from 'typeorm';
-import { BucketsController } from './buckets/buckets.controller';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { Module } from '@nestjs/common';
 import { BucketsModule } from './buckets/buckets.module';
-import { LoggerMiddleware } from './logger.middleware';
+import config from './config/mikroorm.config';
+import { Bucket, Category, Challenge } from './entities';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(), BucketsModule, DatabaseModule],
+  imports: [
+    MikroOrmModule.forRoot({
+      ...config,
+      autoLoadEntities: true,
+    }),
+    MikroOrmModule.forFeature({
+      entities: [Bucket, Category, Challenge],
+    }),
+    BucketsModule,
+  ],
 })
-export class AppModule implements NestModule {
-  constructor(private dataSource: DataSource) {}
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes(BucketsController);
-  }
-}
+export class AppModule {}
