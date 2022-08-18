@@ -22,16 +22,20 @@
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
   },
   "dependencies": {
+    "@mikro-orm/core": "^5.3.1",
+    "@mikro-orm/nestjs": "^5.1.1",
+    "@mikro-orm/postgresql": "^5.3.1",
+    "@mikro-orm/sql-highlighter": "^1.0.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/typeorm": "^9.0.0",
+    "crypto": "^1.0.1",
     "dotenv": "^16.0.1",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^7.2.0",
-    "typeorm": "^0.3.7"
+    "rxjs": "^7.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

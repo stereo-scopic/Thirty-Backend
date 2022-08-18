@@ -41,3 +41,5 @@ lerna-debug.log*
 # Environment Variable
 .env
 *.env
+
+src/config
