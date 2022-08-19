@@ -7,14 +7,11 @@ import {
   EntityRepositoryType,
 } from '@mikro-orm/core';
 import { BucketStatus } from 'src/buckets/bucket-status.enum';
-import { BucketsRepository } from 'src/buckets/buckets.repository';
 import { Challenge } from './challenges.entity';
 import { User } from './user.entity';
 
 @Entity()
 export class Bucket {
-  [EntityRepositoryType]?: BucketsRepository;
-
   @PrimaryKey()
   id: string;
 

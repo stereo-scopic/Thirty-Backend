@@ -39,6 +39,11 @@ export class User {
   constructor(uuid: string) {
     this.uuid = uuid;
     this.id = crypto.randomBytes(10).toString('hex');
-    // this.refreshToken = '';
   }
 }
+
+// @ManyToMany(() => Bucket, bucket => bucket.user, { hidden: true })
+// buckets: new Collection<Bucket>(this);
+
+// @OneToMany(() => User, user => user.friends, { hidden: true })
+// friends: new Collection<User>(this);

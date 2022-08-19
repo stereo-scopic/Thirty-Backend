@@ -12,5 +12,7 @@ export class JwtRefreshStragegy extends PassportStrategy(
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-  ) {}
+  ) {
+    super();
+  }
 }

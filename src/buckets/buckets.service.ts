@@ -4,7 +4,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Bucket, Category, Challenge, Question, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { UserService } from 'src/user/user.service';
-import { BucketsRepository } from './buckets.repository';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
