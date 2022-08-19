@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from 'src/entities';
 import { hash } from 'bcrypt';
 import { AuthService } from 'src/auth/auth.service';
+import { UserTokenDto } from './dto/user-token.dto';
 
 @Injectable()
 export class UserService {
@@ -11,10 +12,7 @@ export class UserService {
     private readonly authService: AuthService,
   ) {}
 
-  async createUser(uuid: string): Promise<{
-    access_token: string;
-    refresh_token: string;
-  }> {
+  async createUser(uuid: string): Promise<UserTokenDto> {
     const user = this.userRepository.create({ uuid: uuid });
     return this.generateUserToken(user);
   }
