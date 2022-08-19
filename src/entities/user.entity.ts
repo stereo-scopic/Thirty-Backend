@@ -1,6 +1,6 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { UserType } from '../auth/user-type.enum';
-import { UserVisiblity } from 'src/auth/user-visibility.enum';
+import { UserType } from 'src/user/user-type.enum';
+import { UserVisiblity } from 'src/user/user-visibility.enum';
 
 import * as crypto from 'crypto';
 
@@ -33,8 +33,12 @@ export class User {
   @Property({ default: UserVisiblity.PRIVATE })
   visibility: UserVisiblity;
 
+  @Property({ nullable: true })
+  refreshToken: string;
+
   constructor(uuid: string) {
     this.uuid = uuid;
     this.id = crypto.randomBytes(10).toString('hex');
+    // this.refreshToken = '';
   }
 }
