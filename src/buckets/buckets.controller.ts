@@ -1,43 +1,15 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
-import { Bucket, Category, Challenge, User } from 'src/entities';
-import { Question } from 'src/entities/questions.entity';
+import { Bucket, User } from 'src/entities';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
-@Controller('')
+@Controller('buckets')
 export class BucketsController {
   constructor(private bucketsService: BucketsService) {}
 
-  @Get('/challenges')
-  getAllCategories(): Promise<Category[]> {
-    return this.bucketsService.getAllCategories();
-  }
-
-  @Get('/challenges/:category-name')
-  getChallengeByName(
-    @Param('category-name') categoryName: string,
-  ): Promise<Challenge[]> {
-    return this.bucketsService.getChellengesByCategoryName(categoryName);
-  }
-
-  @Get('/challenges/:category-name/:challenge-id')
-  getQuestionsByChallengeId(
-    @Param('challenge-id', ParseIntPipe) challengeId: number,
-  ): Promise<Question[]> {
-    return this.bucketsService.getQuestionsByChallengeId(challengeId);
-  }
-
-  @Post('/buckets/add/newbie')
+  @Post('/add/newbie')
   createNewbieAndBucket(
     @Body() createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<{
@@ -47,7 +19,7 @@ export class BucketsController {
     return this.bucketsService.createNewbieAndBucket(createNewbieBucketDto);
   }
 
-  @Post('/buckets/add/current')
+  @Post('/add/current')
   @UseGuards(AuthGuard())
   createExistingUserBucket(
     @GetUser() user: User,
