@@ -33,7 +33,7 @@ export class BucketsService {
     return this.questionRepository.find({ challenge: challengeId });
   }
 
-  async createNewbieAndBuckets(
+  async createNewbieAndBucket(
     createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<{
     access_token: string;

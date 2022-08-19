@@ -35,12 +35,12 @@ export class BucketsController {
   }
 
   @Post('/buckets/add/newbie')
-  createNewbieAndBuckets(
+  createNewbieAndBucket(
     @Body() createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<{
     access_token: string;
     refresh_token: string;
   }> {
-    return this.bucketsService.createNewbieAndBuckets(createNewbieBucketDto);
+    return this.bucketsService.createNewbieAndBucket(createNewbieBucketDto);
   }
 }
