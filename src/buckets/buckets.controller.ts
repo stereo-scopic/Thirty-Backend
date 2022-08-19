@@ -34,8 +34,7 @@ export class BucketsController {
     return this.bucketsService.getQuestionsByChallengeId(challengeId);
   }
 
-  //   @Post('/buckest/add/current')
-  @Post('/buckest/add/newbie')
+  @Post('/buckets/add/newbie')
   createNewbieAndBuckets(
     @Body() createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<{
