@@ -13,14 +13,12 @@ export class Challenge extends BaseEntity {
   is_public: boolean;
 
   @ManyToOne({
-    serializer: (value) => value.name,
-    serializedName: 'categoryName',
+    entity: 'Category',
   })
   category: Category;
 
   @ManyToOne({
-    serializer: (value) => value.nickname,
-    serializedName: 'authorNickname',
+    entity: 'User',
   })
   author: User;
 }
