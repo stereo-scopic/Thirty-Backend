@@ -1,17 +1,24 @@
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { Injectable } from '@nestjs/common';
-import { Category, Challenge, Question } from 'src/entities';
+import { Inject, Injectable } from '@nestjs/common';
+import { Bucket, Category, Challenge, Question, User } from 'src/entities';
+import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { UserService } from 'src/user/user.service';
 import { BucketsRepository } from './buckets.repository';
+import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
 @Injectable()
 export class BucketsService {
   constructor(
     private readonly userService: UserService,
-    private readonly bucketsRepository: BucketsRepository,
+    @InjectRepository(Bucket)
+    private readonly bucketRepository: EntityRepository<Bucket>,
+    @InjectRepository(Category)
     private readonly categoryRepository: EntityRepository<Category>,
+    @InjectRepository(Challenge)
     private readonly challengeRepository: EntityRepository<Challenge>,
+    @InjectRepository(Question)
     private readonly questionRepository: EntityRepository<Question>,
   ) {}
 
@@ -33,18 +40,18 @@ export class BucketsService {
     return this.questionRepository.find({ challenge: challengeId });
   }
 
+  async createBucket(createBucketDto: CreateBucketDto): Promise<Bucket> {
+    return this.bucketRepository.create(createBucketDto);
+  }
+
   async createNewbieAndBucket(
     createNewbieBucketDto: CreateNewbieBucketDto,
-  ): Promise<{
-    access_token: string;
-    refresh_token: string;
-  }> {
-    const userToken = await this.userService.createUser(
-      createNewbieBucketDto.uuid,
-    );
+  ): Promise<UserTokenDto> {
+    const { uuid, challenge } = createNewbieBucketDto;
+    const userToken = await this.userService.createUser(uuid);
+    const user = await this.userService.getByUuid(uuid);
 
-    await this.bucketsRepository.createNewbieBucket(createNewbieBucketDto);
-
+    await this.createBucket({ user, challenge });
     return userToken;
   }
 }

@@ -41,4 +41,9 @@ export class Bucket {
 
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date();
+
+  constructor(user: User, challenge: Challenge) {
+    this.user = user;
+    this.challenge = challenge;
+  }
 }

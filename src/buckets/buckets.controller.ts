@@ -5,8 +5,11 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { Category, Challenge } from 'src/entities';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { Bucket, Category, Challenge, User } from 'src/entities';
 import { Question } from 'src/entities/questions.entity';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
@@ -42,5 +45,14 @@ export class BucketsController {
     refresh_token: string;
   }> {
     return this.bucketsService.createNewbieAndBucket(createNewbieBucketDto);
+  }
+
+  @Post('/buckets/add/current')
+  @UseGuards(AuthGuard())
+  createExistingUserBucket(
+    @GetUser() user: User,
+    @Body('challenge') challenge: number,
+  ): Promise<Bucket> {
+    return this.bucketsService.createBucket({ user, challenge });
   }
 }
