@@ -12,7 +12,7 @@ export class User {
   @Property({ unique: true })
   uuid: string;
 
-  @Property({ nullable: true })
+  @Property({ nullable: true, unique: true })
   email: string;
 
   @Property({ nullable: true })

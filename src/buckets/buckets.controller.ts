@@ -1,7 +1,7 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/auth/get-user.decorator';
-import { Bucket, User } from 'src/entities';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
+import { Bucket } from 'src/entities';
+import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
@@ -12,19 +12,17 @@ export class BucketsController {
   @Post('/add/newbie')
   createNewbieAndBucket(
     @Body() createNewbieBucketDto: CreateNewbieBucketDto,
-  ): Promise<{
-    access_token: string;
-    refresh_token: string;
-  }> {
+  ): Promise<UserTokenDto> {
     return this.bucketsService.createNewbieAndBucket(createNewbieBucketDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/add/current')
-  @UseGuards(AuthGuard())
   createExistingUserBucket(
-    @GetUser() user: User,
+    @Request() req,
     @Body('challenge') challenge: number,
   ): Promise<Bucket> {
+    const user = req.user;
     return this.bucketsService.createBucket({ user, challenge });
   }
 }

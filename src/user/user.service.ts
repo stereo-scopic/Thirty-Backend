@@ -1,37 +1,41 @@
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities';
-import { hash } from 'bcrypt';
-import { AuthService } from 'src/auth/auth.service';
+import { compare, hash } from 'bcrypt';
 import { UserTokenDto } from './dto/user-token.dto';
+import { InjectRepository } from '@mikro-orm/nestjs';
 
 @Injectable()
 export class UserService {
   constructor(
+    @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
-    private readonly authService: AuthService,
   ) {}
 
-  async createUser(uuid: string): Promise<UserTokenDto> {
-    const user = this.userRepository.create({ uuid: uuid });
-    return this.generateUserToken(user);
+  async createUser(uuid: string): Promise<User> {
+    return this.userRepository.create({ uuid: uuid });
+  }
+
+  async getById(id: string): Promise<User> {
+    return this.userRepository.findOne({ id: id });
   }
 
   async getByUuid(uuid: string): Promise<User> {
     return this.userRepository.findOne({ uuid: uuid });
   }
 
-  private async generateUserToken(user: User): Promise<{
-    access_token: string;
-    refresh_token: string;
-  }> {
-    const accessToken = await this.authService.generateAccessToken(user.uuid);
-    const refreshToken = await this.authService.generateRefreshToken(user.uuid);
-    await this.setCurrentRefreshToken(refreshToken, user.id);
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+  async getByEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({ email: email });
+  }
+
+  async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
+    const user = await this.getById(id);
+    const isRefreshTokenMatching = await compare(
+      refreshToken,
+      user.refreshToken,
+    );
+    if (isRefreshTokenMatching) return user;
+    throw new UnauthorizedException();
   }
 
   private async setCurrentRefreshToken(refreshToken: string, userId: string) {

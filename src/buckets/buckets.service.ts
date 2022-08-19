@@ -1,6 +1,7 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
+import { AuthService } from 'src/auth/auth.service';
 import { Bucket } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { UserService } from 'src/user/user.service';
@@ -11,6 +12,7 @@ import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 export class BucketsService {
   constructor(
     private readonly userService: UserService,
+    private readonly authService: AuthService,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
   ) {}
@@ -23,10 +25,15 @@ export class BucketsService {
     createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<UserTokenDto> {
     const { uuid, challenge } = createNewbieBucketDto;
-    const userToken = await this.userService.createUser(uuid);
-    const user = await this.userService.getByUuid(uuid);
 
+    const user = await this.userService.getByUuid(uuid);
     await this.createBucket({ user, challenge });
-    return userToken;
+
+    const accessToken = this.authService.getCookieWithJwtAccessToken(uuid);
+    const refreshToken = this.authService.getCookieWithJwtRefreshToken(uuid);
+    return {
+      access_token: accessToken.access_token,
+      refresh_token: refreshToken.refresh_token,
+    };
   }
 }
