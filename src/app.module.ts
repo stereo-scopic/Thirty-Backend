@@ -25,14 +25,4 @@ import { AuthModule } from './auth/auth.module';
     ChallengeModule,
   ],
 })
-export class AppModule implements NestModule, OnModuleInit {
-  constructor(private readonly orm: MikroORM) {}
-
-  async onModuleInit(): Promise<void> {
-    await this.orm.getMigrator().up();
-  }
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(MikroOrmMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}
