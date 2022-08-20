@@ -10,10 +10,15 @@ import { UserModule } from './user/user.module';
 import { ChallengeModule } from './challenge/challenge.module';
 import { MikroORM } from '@mikro-orm/core';
 import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     MikroOrmModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath: '.development.env',
+      isGlobal: true,
+    }),
     AuthModule,
     BucketsModule,
     ChallengeModule,
