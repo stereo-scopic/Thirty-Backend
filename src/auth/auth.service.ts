@@ -43,21 +43,26 @@ export class AuthService {
     };
   }
 
-  getCookieWithJwtRefreshToken(uuid: string) {
+  getRefreshToken(uuid: string) {
     const payload = { uuid };
-    const token = this.jwtService.sign(payload, {
+    return this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     });
-    return {
-      refresh_token: token,
-      domain: this.configService.get('HOST_NAME'),
-      path: '/',
-      httpOnly: true,
-      maxAge:
-        Number(this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')) * 1000,
-    };
   }
+
+  // getCookieWithJwtRefreshToken(uuid: string) {
+  //   const payload = { uuid };
+
+  //   return {
+  //     refresh_token: token,
+  //     domain: this.configService.get('HOST_NAME'),
+  //     path: '/',
+  //     httpOnly: true,
+  //     maxAge:
+  //       Number(this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')) * 1000,
+  //   };
+  // }
 
   getCookiesForLogOut() {
     return {
