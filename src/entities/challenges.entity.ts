@@ -9,16 +9,18 @@ export class Challenge extends BaseEntity {
   @Property()
   description: string;
 
-  @Property()
+  @Property({ default: true })
   is_public: boolean;
 
   @ManyToOne({
-    entity: 'Category',
+    entity: () => Category,
+    onDelete: 'cascade',
   })
   category: Category;
 
   @ManyToOne({
-    entity: 'User',
+    entity: () => User,
+    nullable: true,
   })
   author: User;
 }

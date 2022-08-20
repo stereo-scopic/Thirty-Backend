@@ -1,13 +1,13 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { UserType } from 'src/user/user-type.enum';
-import { UserVisiblity } from 'src/user/user-visibility.enum';
+import { UserType } from '../user/user-type.enum';
+import { UserVisiblity } from '../user/user-visibility.enum';
 
 import * as crypto from 'crypto';
 
 @Entity()
 export class User {
-  @PrimaryKey()
-  id: string;
+  @PrimaryKey({ autoincrement: false })
+  id!: string;
 
   @Property({ unique: true })
   uuid: string;
@@ -21,16 +21,19 @@ export class User {
   @Property({ nullable: true })
   nickname: string;
 
-  @Property({ defaultRaw: 'current_timestamp()' })
-  dateJoined: Date = new Date();
+  @Property({ defaultRaw: 'current_timestamp' })
+  date_joined: Date = new Date();
 
-  @Property({ onUpdate: () => new Date() })
-  updatedAt: Date = new Date();
+  @Property({
+    defaultRaw: 'current_timestamp',
+    onUpdate: () => new Date(),
+  })
+  updated_at: Date = new Date();
 
-  @Property({ default: UserType.BASIC })
+  @Property({ type: 'string', default: UserType.BASIC })
   type: UserType;
 
-  @Property({ default: UserVisiblity.PRIVATE })
+  @Property({ type: 'string', default: UserVisiblity.PRIVATE })
   visibility: UserVisiblity;
 
   @Property({ nullable: true })

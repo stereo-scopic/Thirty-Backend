@@ -4,9 +4,8 @@ import {
   PrimaryKey,
   ManyToOne,
   ManyToMany,
-  EntityRepositoryType,
 } from '@mikro-orm/core';
-import { BucketStatus } from 'src/buckets/bucket-status.enum';
+import { BucketStatus } from '../buckets/bucket-status.enum';
 import { Challenge } from './challenges.entity';
 import { User } from './user.entity';
 
@@ -30,14 +29,17 @@ export class Bucket {
   @Property({ default: 0 })
   count: number;
 
-  @Property({ default: BucketStatus.WRK })
+  @Property({ type: 'string', default: BucketStatus.WORKING_ON })
   status: BucketStatus;
 
-  @Property({ defaultRaw: 'current_timestamp()' })
-  createdAt: Date = new Date();
+  @Property({ defaultRaw: 'current_timestamp' })
+  created_at: Date = new Date();
 
-  @Property({ onUpdate: () => new Date() })
-  updatedAt: Date = new Date();
+  @Property({
+    defaultRaw: 'current_timestamp',
+    onUpdate: () => new Date(),
+  })
+  updated_at: Date = new Date();
 
   constructor(user: User, challenge: Challenge) {
     this.user = user;
