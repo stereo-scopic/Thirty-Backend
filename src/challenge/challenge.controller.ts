@@ -6,14 +6,14 @@ import { ChallengeService } from './challenge.service';
 export class ChallengeController {
   constructor(private challengeService: ChallengeService) {}
 
-  @Get('/challenges')
+  @Get('')
   getAllCategories(): Promise<Category[]> {
     return this.challengeService.getAllCategories();
   }
 
-  @Get('/:category-name')
+  @Get('/:category')
   getChallengeByName(
-    @Param('category-name') categoryName: string,
+    @Param('category') categoryName: string,
   ): Promise<Challenge[]> {
     return this.challengeService.getChellengesByCategoryName(categoryName);
   }
