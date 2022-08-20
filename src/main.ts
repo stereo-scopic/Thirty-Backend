@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { createConnection } from 'typeorm';
 
 dotenv.config({
   path: path.resolve(
@@ -14,12 +13,11 @@ dotenv.config({
   ),
 });
 
-createConnection()
-  .then(async (connection) => {})
-  .catch((error) => console.log(error));
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const appOptions = { cors: true };
+  const app = await NestFactory.create(AppModule, appOptions);
+  app.setGlobalPrefix('api/v1');
   await app.listen(3000);
 }
+
 bootstrap();

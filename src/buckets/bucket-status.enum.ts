@@ -1,5 +1,11 @@
 export enum BucketStatus {
-  WRK = 'WORKING ON',
-  CMP = 'COMPLETED',
-  ABD = 'ABANDON',
+  WORKING_ON = 'WRK',
+  COMPLETED = 'CMP',
+  ABANDON = 'ABD',
+}
+
+export enum BucketPermission {
+  PUBLIC = 'PUBLIC',
+  FRIEND = 'FRIEND',
+  PRIVATE = 'PRIVATE',
 }
