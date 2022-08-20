@@ -31,7 +31,7 @@ export class AuthService {
     const payload = { uuid };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN')}s`,
+      expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
     });
     return {
       access_token: token,
@@ -47,7 +47,7 @@ export class AuthService {
     const payload = { uuid };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')}s`,
+      expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     });
     return {
       refresh_token: token,
