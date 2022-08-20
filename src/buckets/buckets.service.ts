@@ -26,14 +26,16 @@ export class BucketsService {
   ): Promise<UserTokenDto> {
     const { uuid, challenge } = createNewbieBucketDto;
 
-    const user = await this.userService.getByUuid(uuid);
+    const user = await this.userService.createUser(uuid);
     await this.createBucket({ user, challenge });
 
     const accessToken = this.authService.getCookieWithJwtAccessToken(uuid);
-    const refreshToken = this.authService.getCookieWithJwtRefreshToken(uuid);
+    const refreshToken = this.authService.getRefreshToken(uuid);
+    await this.userService.setCurrentRefreshToken(refreshToken, user.id);
+
     return {
       access_token: accessToken.access_token,
-      refresh_token: refreshToken.refresh_token,
+      refresh_token: refreshToken,
     };
   }
 }
