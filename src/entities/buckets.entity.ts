@@ -1,13 +1,9 @@
-import {
-  Entity,
-  Property,
-  PrimaryKey,
-  ManyToOne,
-  ManyToMany,
-} from '@mikro-orm/core';
+import { Entity, Property, PrimaryKey, ManyToOne } from '@mikro-orm/core';
 import { BucketStatus } from '../buckets/bucket-status.enum';
 import { Challenge } from './challenges.entity';
 import { User } from './user.entity';
+
+import * as crypto from 'crypto';
 
 @Entity()
 export class Bucket {
@@ -20,7 +16,7 @@ export class Bucket {
   })
   user: User;
 
-  @ManyToMany({
+  @ManyToOne({
     serializer: (value) => value.title,
     serializedName: 'challengeName',
   })
@@ -42,6 +38,7 @@ export class Bucket {
   updated_at: Date = new Date();
 
   constructor(user: User, challenge: Challenge) {
+    this.id = crypto.randomBytes(15).toString('hex');
     this.user = user;
     this.challenge = challenge;
   }
