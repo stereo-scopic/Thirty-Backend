@@ -18,6 +18,11 @@ export class UserService {
     return user;
   }
 
+  async deleteUser(uuid: string): Promise<void> {
+    const result = await this.userRepository.nativeDelete({ uuid: uuid });
+    console.log(result);
+  }
+
   async getById(id: string): Promise<User> {
     return this.userRepository.findOne({ id: id });
   }
