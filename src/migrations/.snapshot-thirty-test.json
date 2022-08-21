@@ -425,6 +425,15 @@
           "nullable": false,
           "mappedType": "string"
         },
+        "challenge_id": {
+          "name": "challenge_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
         "count": {
           "name": "count",
           "type": "int",
@@ -494,70 +503,17 @@
           ],
           "referencedTableName": "public.user",
           "updateRule": "cascade"
-        }
-      }
-    },
-    {
-      "columns": {
-        "bucket_id": {
-          "name": "bucket_id",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
         },
-        "challenge_id": {
-          "name": "challenge_id",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
-        }
-      },
-      "name": "bucket_challenge",
-      "schema": "public",
-      "indexes": [
-        {
-          "keyName": "bucket_challenge_pkey",
-          "columnNames": [
-            "bucket_id",
-            "challenge_id"
-          ],
-          "composite": true,
-          "primary": true,
-          "unique": true
-        }
-      ],
-      "checks": [],
-      "foreignKeys": {
-        "bucket_challenge_bucket_id_foreign": {
-          "constraintName": "bucket_challenge_bucket_id_foreign",
-          "columnNames": [
-            "bucket_id"
-          ],
-          "localTableName": "public.bucket_challenge",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.bucket",
-          "deleteRule": "cascade",
-          "updateRule": "cascade"
-        },
-        "bucket_challenge_challenge_id_foreign": {
-          "constraintName": "bucket_challenge_challenge_id_foreign",
+        "bucket_challenge_id_foreign": {
+          "constraintName": "bucket_challenge_id_foreign",
           "columnNames": [
             "challenge_id"
           ],
-          "localTableName": "public.bucket_challenge",
+          "localTableName": "public.bucket",
           "referencedColumnNames": [
             "id"
           ],
           "referencedTableName": "public.challenge",
-          "deleteRule": "cascade",
           "updateRule": "cascade"
         }
       }

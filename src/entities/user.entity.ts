@@ -39,8 +39,9 @@ export class User {
   @Property({ nullable: true })
   refreshToken: string;
 
-  constructor(uuid: string) {
+  constructor(uuid: string, token: string) {
     this.uuid = uuid;
+    this.refreshToken = token;
     this.id = crypto.randomBytes(10).toString('hex');
   }
 }

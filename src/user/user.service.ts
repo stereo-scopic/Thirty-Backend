@@ -13,7 +13,9 @@ export class UserService {
   ) {}
 
   async createUser(uuid: string): Promise<User> {
-    return this.userRepository.create({ uuid: uuid });
+    const user = this.userRepository.create({ uuid: uuid });
+    await this.transaction(user);
+    return user;
   }
 
   async getById(id: string): Promise<User> {
@@ -48,5 +50,9 @@ export class UserService {
 
   private async removeRefreshToken(userId: string) {
     this.userRepository.nativeUpdate({ id: userId }, { refreshToken: null });
+  }
+
+  private async transaction(user: User) {
+    this.userRepository.persist(user);
   }
 }
