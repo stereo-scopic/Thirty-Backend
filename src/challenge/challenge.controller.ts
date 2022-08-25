@@ -1,7 +1,23 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { Category, Challenge, Question } from 'src/entities';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
+import { Category, Challenge } from 'src/entities';
 import { ChallengeService } from './challenge.service';
+import { CreateMissionDto } from './dto/create-mission.dto';
 
+import {
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+
+@ApiTags('Challenges')
 @Controller('challenges')
 export class ChallengeController {
   constructor(private challengeService: ChallengeService) {}
@@ -18,10 +34,33 @@ export class ChallengeController {
     return this.challengeService.getChellengesByCategoryName(categoryName);
   }
 
-  @Get('/:category-name/:challenge-id')
+  @ApiOperation({ summary: `챌린지 상세 조회` })
+  @ApiResponse({
+    status: 200,
+    description: `Return Challenge`,
+    type: Challenge,
+  })
+  @Get('/:category/:id')
   getQuestionsByChallengeId(
-    @Param('challenge-id', ParseIntPipe) challengeId: number,
-  ): Promise<Question[]> {
-    return this.challengeService.getQuestionsByChallengeId(challengeId);
+    @Param('id', ParseIntPipe) challengeId: number,
+  ): Promise<Challenge> {
+    return this.challengeService.getChallengeById(challengeId);
+  }
+
+  @ApiOperation({ summary: `챌린지 내 미션 등록` })
+  @ApiCreatedResponse({
+    description: `Return Challenge`,
+    type: Challenge,
+  })
+  @Post('/:category/:id')
+  registerChallengeMissions(
+    @Param('id', ParseIntPipe) challengeId: number,
+    @Body('missions') missions: CreateMissionDto[],
+  ): Promise<Challenge> {
+    console.log('missions', missions);
+    return this.challengeService.registerChallengeMissions(
+      missions,
+      challengeId,
+    );
   }
 }

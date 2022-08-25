@@ -1,7 +1,8 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable } from '@nestjs/common';
-import { Category, Challenge, Question } from 'src/entities';
+import { Category, Challenge, Mission } from 'src/entities';
+import { CreateMissionDto } from './dto/create-mission.dto';
 
 @Injectable()
 export class ChallengeService {
@@ -10,8 +11,8 @@ export class ChallengeService {
     private readonly categoryRepository: EntityRepository<Category>,
     @InjectRepository(Challenge)
     private readonly challengeRepository: EntityRepository<Challenge>,
-    @InjectRepository(Question)
-    private readonly questionRepository: EntityRepository<Question>,
+    @InjectRepository(Mission)
+    private readonly missionRepository: EntityRepository<Mission>,
   ) {}
 
   async getAllCategories(): Promise<Category[]> {
@@ -28,7 +29,29 @@ export class ChallengeService {
     });
   }
 
-  async getQuestionsByChallengeId(challengeId: number): Promise<Question[]> {
-    return this.questionRepository.find({ challenge: challengeId });
+  async getChallengeById(challengeId: number): Promise<Challenge> {
+    return this.challengeRepository.findOneOrFail(
+      { id: challengeId },
+      { populate: ['missions'] },
+    );
+  }
+
+  async registerChallengeMissions(
+    missions: CreateMissionDto[],
+    challengeId: number,
+  ): Promise<Challenge> {
+    const challenge = await this.challengeRepository.findOne(
+      { id: challengeId },
+      { populate: ['missions'] },
+    );
+    for (const mission of missions) {
+      const { date, detail } = mission;
+      const mission_ = new Mission(date, detail);
+      challenge.missions.add(mission_);
+      mission_.challenge = challenge;
+      await this.missionRepository.persistAndFlush(mission_);
+    }
+
+    return challenge;
   }
 }
