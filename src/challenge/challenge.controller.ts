@@ -29,7 +29,7 @@ export class ChallengeController {
   @Get('/:category/:id')
   getQuestionsByChallengeId(
     @Param('id', ParseIntPipe) challengeId: number,
-  ): Promise<Mission[]> {
+  ): Promise<Challenge> {
     return this.challengeService.getMissionsByChallengeId(challengeId);
   }
 

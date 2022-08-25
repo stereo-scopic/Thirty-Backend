@@ -29,8 +29,11 @@ export class ChallengeService {
     });
   }
 
-  async getMissionsByChallengeId(challengeId: number): Promise<Mission[]> {
-    return this.missionRepository.find({ challenge: challengeId });
+  async getMissionsByChallengeId(challengeId: number): Promise<Challenge> {
+    return this.challengeRepository.findOneOrFail(
+      { id: challengeId },
+      { populate: ['missions'] },
+    );
   }
 
   async registerChallengeMissions(
