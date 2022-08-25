@@ -17,4 +17,9 @@ export class Mission {
 
   @Property()
   detail: string;
+
+  constructor(date: number, detail: string) {
+    this.date = date;
+    this.detail = detail;
+  }
 }

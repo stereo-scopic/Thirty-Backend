@@ -1,6 +1,14 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { Category, Challenge, Mission } from 'src/entities';
 import { ChallengeService } from './challenge.service';
+import { CreateMissionDto } from './dto/create-mission.dto';
 
 @Controller('challenges')
 export class ChallengeController {
@@ -18,10 +26,22 @@ export class ChallengeController {
     return this.challengeService.getChellengesByCategoryName(categoryName);
   }
 
-  @Get('/:category-name/:challenge-id')
+  @Get('/:category/:id')
   getQuestionsByChallengeId(
-    @Param('challenge-id', ParseIntPipe) challengeId: number,
+    @Param('id', ParseIntPipe) challengeId: number,
   ): Promise<Mission[]> {
     return this.challengeService.getMissionsByChallengeId(challengeId);
+  }
+
+  @Post('/:category/:id')
+  registerChallengeMissions(
+    @Param('id', ParseIntPipe) challengeId: number,
+    @Body('missions') missions: CreateMissionDto[],
+  ): Promise<Challenge> {
+    console.log('missions', missions);
+    return this.challengeService.registerChallengeMissions(
+      missions,
+      challengeId,
+    );
   }
 }
