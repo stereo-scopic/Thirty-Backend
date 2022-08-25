@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { Bucket } from 'src/entities';
+import { Bucket, Challenge, User } from 'src/entities';
 import { BucketsController } from './buckets.controller';
 import { BucketsService } from './buckets.service';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
@@ -8,7 +8,7 @@ import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([Bucket]),
+    MikroOrmModule.forFeature([Bucket, User, Challenge]),
     UserModule,
     BucketsModule,
     AuthModule,
