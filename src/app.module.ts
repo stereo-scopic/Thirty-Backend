@@ -16,7 +16,7 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     MikroOrmModule.forRoot(),
     ConfigModule.forRoot({
-      envFilePath: '.development.env',
+      envFilePath: `${process.cwd()}/.${process.env.NODE_ENV}.env`,
       isGlobal: true,
     }),
     AuthModule,
