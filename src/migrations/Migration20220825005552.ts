@@ -1,6 +1,6 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20220820032542 extends Migration {
+export class Migration20220825005552 extends Migration {
 
   async up(): Promise<void> {
     this.addSql('create table "category" ("id" serial primary key, "created_at" timestamptz(0) not null default current_timestamp, "updated_at" timestamptz(0) not null default current_timestamp, "name" varchar(255) not null, "description" varchar(255) not null);');
@@ -12,7 +12,7 @@ export class Migration20220820032542 extends Migration {
 
     this.addSql('create table "challenge" ("id" serial primary key, "created_at" timestamptz(0) not null default current_timestamp, "updated_at" timestamptz(0) not null default current_timestamp, "title" varchar(255) not null, "description" varchar(255) not null, "is_public" boolean not null default true, "category_id" int not null, "author_id" varchar(255) null);');
 
-    this.addSql('create table "question" ("id" serial primary key, "challenge_id" int not null, "date" int not null, "detail" varchar(255) not null);');
+    this.addSql('create table "mission" ("id" serial primary key, "challenge_id" int not null, "date" int not null, "detail" varchar(255) not null);');
 
     this.addSql('create table "bucket" ("id" varchar(255) not null, "user_id" varchar(255) not null, "count" int not null default 0, "status" varchar(255) not null default \'WRK\', "created_at" timestamptz(0) not null default current_timestamp, "updated_at" timestamptz(0) not null default current_timestamp, constraint "bucket_pkey" primary key ("id"));');
 
@@ -21,7 +21,7 @@ export class Migration20220820032542 extends Migration {
     this.addSql('alter table "challenge" add constraint "challenge_category_id_foreign" foreign key ("category_id") references "category" ("id") on update cascade on delete cascade;');
     this.addSql('alter table "challenge" add constraint "challenge_author_id_foreign" foreign key ("author_id") references "user" ("id") on update cascade on delete set null;');
 
-    this.addSql('alter table "question" add constraint "question_challenge_id_foreign" foreign key ("challenge_id") references "challenge" ("id") on update cascade;');
+    this.addSql('alter table "mission" add constraint "mission_challenge_id_foreign" foreign key ("challenge_id") references "challenge" ("id") on update cascade;');
 
     this.addSql('alter table "bucket" add constraint "bucket_user_id_foreign" foreign key ("user_id") references "user" ("id") on update cascade;');
 
