@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { Category, Challenge, Question } from 'src/entities';
+import { Category, Challenge, Mission } from 'src/entities';
 import { ChallengeService } from './challenge.service';
 
 @Controller('challenges')
@@ -21,7 +21,7 @@ export class ChallengeController {
   @Get('/:category-name/:challenge-id')
   getQuestionsByChallengeId(
     @Param('challenge-id', ParseIntPipe) challengeId: number,
-  ): Promise<Question[]> {
-    return this.challengeService.getQuestionsByChallengeId(challengeId);
+  ): Promise<Mission[]> {
+    return this.challengeService.getMissionsByChallengeId(challengeId);
   }
 }

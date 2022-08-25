@@ -1,7 +1,7 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable } from '@nestjs/common';
-import { Category, Challenge, Question } from 'src/entities';
+import { Category, Challenge, Mission } from 'src/entities';
 
 @Injectable()
 export class ChallengeService {
@@ -10,8 +10,8 @@ export class ChallengeService {
     private readonly categoryRepository: EntityRepository<Category>,
     @InjectRepository(Challenge)
     private readonly challengeRepository: EntityRepository<Challenge>,
-    @InjectRepository(Question)
-    private readonly questionRepository: EntityRepository<Question>,
+    @InjectRepository(Mission)
+    private readonly missionRepository: EntityRepository<Mission>,
   ) {}
 
   async getAllCategories(): Promise<Category[]> {
@@ -28,7 +28,7 @@ export class ChallengeService {
     });
   }
 
-  async getQuestionsByChallengeId(challengeId: number): Promise<Question[]> {
-    return this.questionRepository.find({ challenge: challengeId });
+  async getMissionsByChallengeId(challengeId: number): Promise<Mission[]> {
+    return this.missionRepository.find({ challenge: challengeId });
   }
 }

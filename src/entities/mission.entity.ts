@@ -2,7 +2,7 @@ import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
 import { Challenge } from './challenges.entity';
 
 @Entity()
-export class Question {
+export class Mission {
   @PrimaryKey()
   id: number;
 

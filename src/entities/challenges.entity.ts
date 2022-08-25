@@ -1,5 +1,11 @@
-import { Entity, ManyToOne, Property } from '@mikro-orm/core';
-import { BaseEntity, Category, User } from '../entities';
+import {
+  Collection,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  Property,
+} from '@mikro-orm/core';
+import { BaseEntity, Category, Mission, User } from '../entities';
 
 @Entity()
 export class Challenge extends BaseEntity {
@@ -23,4 +29,7 @@ export class Challenge extends BaseEntity {
     nullable: true,
   })
   author: User;
+
+  @OneToMany(() => Mission, (m) => m.date)
+  missions = new Collection<Mission>(this);
 }
