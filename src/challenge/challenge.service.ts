@@ -29,7 +29,7 @@ export class ChallengeService {
     });
   }
 
-  async getMissionsByChallengeId(challengeId: number): Promise<Challenge> {
+  async getChallengeById(challengeId: number): Promise<Challenge> {
     return this.challengeRepository.findOneOrFail(
       { id: challengeId },
       { populate: ['missions'] },
