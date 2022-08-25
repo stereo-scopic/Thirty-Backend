@@ -30,6 +30,6 @@ export class Challenge extends BaseEntity {
   })
   author: User;
 
-  @OneToMany(() => Mission, (m) => m.date)
+  @OneToMany(() => Mission, (m) => m.challenge)
   missions = new Collection<Mission>(this);
 }
