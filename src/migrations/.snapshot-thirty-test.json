@@ -386,11 +386,11 @@
           "mappedType": "string"
         }
       },
-      "name": "question",
+      "name": "mission",
       "schema": "public",
       "indexes": [
         {
-          "keyName": "question_pkey",
+          "keyName": "mission_pkey",
           "columnNames": [
             "id"
           ],
@@ -401,12 +401,12 @@
       ],
       "checks": [],
       "foreignKeys": {
-        "question_challenge_id_foreign": {
-          "constraintName": "question_challenge_id_foreign",
+        "mission_challenge_id_foreign": {
+          "constraintName": "mission_challenge_id_foreign",
           "columnNames": [
             "challenge_id"
           ],
-          "localTableName": "public.question",
+          "localTableName": "public.mission",
           "referencedColumnNames": [
             "id"
           ],

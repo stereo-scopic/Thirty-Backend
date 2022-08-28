@@ -5,6 +5,9 @@ import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Buckets')
 @Controller('buckets')
 export class BucketsController {
   constructor(private bucketsService: BucketsService) {}
