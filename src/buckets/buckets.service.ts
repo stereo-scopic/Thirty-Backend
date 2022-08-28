@@ -30,9 +30,7 @@ export class BucketsService {
   ): Promise<UserTokenDto> {
     const { uuid, challenge: challengeId } = createNewbieBucketDto;
 
-    const accessToken = this.authService.getCookieWithJwtAccessToken(uuid);
     const refreshToken = this.authService.getRefreshToken(uuid);
-
     let user: User = null;
     try {
       user = new User(uuid, refreshToken);
@@ -44,6 +42,10 @@ export class BucketsService {
       throw new BadRequestException(`가입할 수 없습니다`);
     }
 
+    const accessToken = this.authService.getCookieWithJwtAccessToken(
+      uuid,
+      user.id,
+    );
     const challenge = await this.challengeRepository.findOne({
       id: challengeId,
     });

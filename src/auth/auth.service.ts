@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities';
 import { UserService } from 'src/user/user.service';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { TokenPayload } from './payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -21,14 +23,31 @@ export class AuthService {
     return null;
   }
 
+  async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+    const {
+      password,
+      password_repeat: repeatPassword,
+      ...info
+    } = registerUserDto;
+    const isPasswordConfirmed = this.comparePassword(password, repeatPassword);
+    if (!isPasswordConfirmed)
+      throw new BadRequestException(`비밀번호가 맞지 않습니다.`);
+    return this.userService.register(registerUserDto);
+  }
+
+  private comparePassword(password: string, repeatPassword: string): boolean {
+    if (password === repeatPassword) return true;
+    return false;
+  }
+
   async generateAccessToken(user: User) {
-    const uuid = user.uuid;
-    const payload = { uuid };
+    const { uuid, id } = user;
+    const payload: TokenPayload = { uuid: uuid, id: id };
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  getCookieWithJwtAccessToken(uuid: string) {
-    const payload = { uuid };
+  getCookieWithJwtAccessToken(uuid: string, id: string) {
+    const payload: TokenPayload = { uuid: uuid, id: id };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
@@ -50,19 +69,6 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     });
   }
-
-  // getCookieWithJwtRefreshToken(uuid: string) {
-  //   const payload = { uuid };
-
-  //   return {
-  //     refresh_token: token,
-  //     domain: this.configService.get('HOST_NAME'),
-  //     path: '/',
-  //     httpOnly: true,
-  //     maxAge:
-  //       Number(this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')) * 1000,
-  //   };
-  // }
 
   getCookiesForLogOut() {
     return {

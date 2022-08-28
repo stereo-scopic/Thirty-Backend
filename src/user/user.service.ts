@@ -1,9 +1,11 @@
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities';
-import { compare, hash } from 'bcrypt';
-import { UserTokenDto } from './dto/user-token.dto';
 import { InjectRepository } from '@mikro-orm/nestjs';
+import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
+import * as bcrypt from 'bcrypt';
+
+const SALT_ROUND = 10;
 
 @Injectable()
 export class UserService {
@@ -16,6 +18,16 @@ export class UserService {
     const user = this.userRepository.create({ uuid: uuid });
     await this.transaction(user);
     return user;
+  }
+
+  async register(registerUserDto: RegisterUserDto): Promise<User> {
+    const { id, password, password_repeat, email } = registerUserDto;
+    const hashedPassword = await this.getHashedValue(password);
+    await this.userRepository.nativeUpdate(
+      { id: id },
+      { email: email, password: hashedPassword },
+    );
+    return this.getById(id);
   }
 
   async deleteUser(uuid: string): Promise<void> {
@@ -37,7 +49,7 @@ export class UserService {
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
-    const isRefreshTokenMatching = await compare(
+    const isRefreshTokenMatching = await bcrypt.compare(
       refreshToken,
       user.refreshToken,
     );
@@ -46,7 +58,7 @@ export class UserService {
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    const currentHashedRefreshToken = await hash(refreshToken, 10);
+    const currentHashedRefreshToken = await this.getHashedValue(refreshToken);
     await this.userRepository.nativeUpdate(
       { id: userId },
       { refreshToken: currentHashedRefreshToken },
@@ -55,6 +67,11 @@ export class UserService {
 
   private async removeRefreshToken(userId: string) {
     this.userRepository.nativeUpdate({ id: userId }, { refreshToken: null });
+  }
+
+  private async getHashedValue(value: string): Promise<string> {
+    const salt = await bcrypt.genSalt(SALT_ROUND);
+    return bcrypt.hash(value, salt);
   }
 
   private async transaction(user: User) {
