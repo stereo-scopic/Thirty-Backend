@@ -65,6 +65,13 @@ export class UserService {
     );
   }
 
+  async setSignoutUser(id: string): Promise<void> {
+    await this.userRepository.nativeUpdate(
+      { id: id },
+      { deleted_at: new Date() },
+    );
+  }
+
   private async removeRefreshToken(userId: string) {
     this.userRepository.nativeUpdate({ id: userId }, { refreshToken: null });
   }

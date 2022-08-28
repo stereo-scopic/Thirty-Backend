@@ -35,6 +35,10 @@ export class AuthService {
     return this.userService.register(registerUserDto);
   }
 
+  async signout(id: string): Promise<void> {
+    return this.userService.setSignoutUser(id);
+  }
+
   private comparePassword(password: string, repeatPassword: string): boolean {
     if (password === repeatPassword) return true;
     return false;
