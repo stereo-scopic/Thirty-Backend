@@ -22,7 +22,8 @@ export class AuthService {
       user.password,
     );
     if (user && isPasswordRight) {
-      const { password, ...result } = user;
+      const { password, refreshToken, ...result } = user;
+      console.log('result:', result);
       return result;
     }
     return null;
@@ -55,7 +56,8 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  getCookieWithJwtAccessToken(uuid: string, id: string) {
+  getCookieWithJwtAccessToken(user: User) {
+    const { uuid, id } = user;
     const payload: TokenPayload = { uuid: uuid, id: id };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
@@ -66,7 +68,7 @@ export class AuthService {
       domain: this.configService.get('HOST_NAME'),
       path: '/',
       httpOnly: true,
-      maxAge:
+      'max-age':
         Number(this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN')) * 1000,
     };
   }
@@ -85,13 +87,13 @@ export class AuthService {
         domain: this.configService.get('HOST_NAME'),
         path: '/',
         httpOnly: true,
-        maxAge: 0,
+        'max-age': 0,
       },
       refreshOptions: {
         domain: this.configService.get('HOST_NAME'),
         path: '/',
         httpOnly: true,
-        maxAge: 0,
+        'max-age': 0,
       },
     };
   }

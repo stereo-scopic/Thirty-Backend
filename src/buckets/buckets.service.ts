@@ -42,10 +42,7 @@ export class BucketsService {
       throw new BadRequestException(`가입할 수 없습니다`);
     }
 
-    const accessToken = this.authService.getCookieWithJwtAccessToken(
-      uuid,
-      user.id,
-    );
+    const accessToken = this.authService.getCookieWithJwtAccessToken(user);
     const challenge = await this.challengeRepository.findOne({
       id: challengeId,
     });
