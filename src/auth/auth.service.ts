@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities';
 import { UserService } from 'src/user/user.service';
+import { crypt } from 'src/utils/crypt';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { TokenPayload } from './payload.interface';
 
@@ -16,7 +17,11 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.getByEmail(email);
-    if (user && user.password === password) {
+    const isPasswordRight = await crypt.isEqualToHashed(
+      password,
+      user.password,
+    );
+    if (user && isPasswordRight) {
       const { password, ...result } = user;
       return result;
     }

@@ -3,9 +3,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
-import * as bcrypt from 'bcrypt';
-
-const SALT_ROUND = 10;
+import { crypt } from 'src/utils/crypt';
 
 @Injectable()
 export class UserService {
@@ -22,7 +20,7 @@ export class UserService {
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
     const { id, password, password_repeat, email } = registerUserDto;
-    const hashedPassword = await this.getHashedValue(password);
+    const hashedPassword = await crypt.getHashedValue(password);
     await this.userRepository.nativeUpdate(
       { id: id },
       { email: email, password: hashedPassword },
@@ -49,16 +47,12 @@ export class UserService {
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
-    const isRefreshTokenMatching = await bcrypt.compare(
-      refreshToken,
-      user.refreshToken,
-    );
-    if (isRefreshTokenMatching) return user;
+    if (crypt.isEqualToHashed(refreshToken, user.refreshToken)) return user;
     throw new UnauthorizedException();
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    const currentHashedRefreshToken = await this.getHashedValue(refreshToken);
+    const currentHashedRefreshToken = await crypt.getHashedValue(refreshToken);
     await this.userRepository.nativeUpdate(
       { id: userId },
       { refreshToken: currentHashedRefreshToken },
@@ -74,11 +68,6 @@ export class UserService {
 
   private async removeRefreshToken(userId: string) {
     this.userRepository.nativeUpdate({ id: userId }, { refreshToken: null });
-  }
-
-  private async getHashedValue(value: string): Promise<string> {
-    const salt = await bcrypt.genSalt(SALT_ROUND);
-    return bcrypt.hash(value, salt);
   }
 
   private async transaction(user: User) {
