@@ -47,6 +47,13 @@ export class UserService {
     return this.userRepository.findOne({ email: email });
   }
 
+  async modifyNickname(user: User, nickname: string) {
+    user.nickname = nickname;
+    this.userRepository.persist(user);
+    const { password, refreshToken, ...result } = user;
+    return result;
+  }
+
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
     if (crypt.isEqualToHashed(refreshToken, user.refreshToken)) return user;

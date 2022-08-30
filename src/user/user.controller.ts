@@ -1,4 +1,13 @@
-import { Controller, Delete, Get, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  UseGuards,
+  Req,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { User } from 'src/entities';
 import { UserService } from './user.service';
@@ -16,5 +25,14 @@ export class UserController {
   @Get('/profile')
   async getUserProfile(@Req() req): Promise<any> {
     return this.userService.getById(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/profile/nickname')
+  async modifyNickname(
+    @Req() req,
+    @Body('nickname') nickname: string,
+  ): Promise<any> {
+    return this.userService.modifyNickname(req.user, nickname);
   }
 }
