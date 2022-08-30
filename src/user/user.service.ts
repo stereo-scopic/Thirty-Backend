@@ -33,8 +33,10 @@ export class UserService {
     console.log(result);
   }
 
-  async getById(id: string): Promise<User> {
-    return this.userRepository.findOne({ id: id });
+  async getById(id: string): Promise<any> {
+    const { password, refreshToken, ...user } =
+      await this.userRepository.findOne({ id: id });
+    return user;
   }
 
   async getByUuid(uuid: string): Promise<User> {
