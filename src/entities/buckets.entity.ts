@@ -4,9 +4,15 @@ import { Challenge } from './challenges.entity';
 import { User } from './user.entity';
 
 import * as crypto from 'crypto';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Bucket {
+  @ApiProperty({
+    example: `55b7ca179d58c05154437021d3297a`,
+    type: `string`,
+    description: `버킷 unique id`,
+  })
   @PrimaryKey()
   id: string;
 

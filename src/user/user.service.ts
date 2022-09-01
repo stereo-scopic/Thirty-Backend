@@ -1,9 +1,9 @@
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities';
-import { compare, hash } from 'bcrypt';
-import { UserTokenDto } from './dto/user-token.dto';
 import { InjectRepository } from '@mikro-orm/nestjs';
+import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
+import { crypt } from 'src/utils/crypt';
 
 @Injectable()
 export class UserService {
@@ -18,13 +18,25 @@ export class UserService {
     return user;
   }
 
+  async register(registerUserDto: RegisterUserDto): Promise<User> {
+    const { id, password, password_repeat, email } = registerUserDto;
+    const hashedPassword = await crypt.getHashedValue(password);
+    await this.userRepository.nativeUpdate(
+      { id: id },
+      { email: email, password: hashedPassword },
+    );
+    return this.getById(id);
+  }
+
   async deleteUser(uuid: string): Promise<void> {
     const result = await this.userRepository.nativeDelete({ uuid: uuid });
     console.log(result);
   }
 
-  async getById(id: string): Promise<User> {
-    return this.userRepository.findOne({ id: id });
+  async getById(id: string): Promise<any> {
+    const { password, refreshToken, ...user } =
+      await this.userRepository.findOne({ id: id });
+    return user;
   }
 
   async getByUuid(uuid: string): Promise<User> {
@@ -35,21 +47,31 @@ export class UserService {
     return this.userRepository.findOne({ email: email });
   }
 
+  async modifyNickname(user: User, nickname: string) {
+    user.nickname = nickname;
+    this.userRepository.persist(user);
+    const { password, refreshToken, ...result } = user;
+    return result;
+  }
+
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
-    const isRefreshTokenMatching = await compare(
-      refreshToken,
-      user.refreshToken,
-    );
-    if (isRefreshTokenMatching) return user;
+    if (crypt.isEqualToHashed(refreshToken, user.refreshToken)) return user;
     throw new UnauthorizedException();
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    const currentHashedRefreshToken = await hash(refreshToken, 10);
+    const currentHashedRefreshToken = await crypt.getHashedValue(refreshToken);
     await this.userRepository.nativeUpdate(
       { id: userId },
       { refreshToken: currentHashedRefreshToken },
+    );
+  }
+
+  async setSignoutUser(id: string): Promise<void> {
+    await this.userRepository.nativeUpdate(
+      { id: id },
+      { deleted_at: new Date() },
     );
   }
 

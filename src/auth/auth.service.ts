@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities';
 import { UserService } from 'src/user/user.service';
+import { crypt } from 'src/utils/crypt';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { TokenPayload } from './payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -14,21 +17,48 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.getByEmail(email);
-    if (user && user.password === password) {
-      const { password, ...result } = user;
+    const isPasswordRight = await crypt.isEqualToHashed(
+      password,
+      user.password,
+    );
+    if (user && isPasswordRight) {
+      const { password, refreshToken, ...result } = user;
+      console.log('result:', result);
       return result;
     }
     return null;
   }
 
+  async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+    const {
+      password,
+      password_repeat: repeatPassword,
+      ...info
+    } = registerUserDto;
+    const isPasswordConfirmed = this.comparePassword(password, repeatPassword);
+    if (!isPasswordConfirmed)
+      throw new BadRequestException(`비밀번호가 맞지 않습니다.`);
+    return this.userService.register(registerUserDto);
+  }
+
+  async signout(id: string): Promise<void> {
+    return this.userService.setSignoutUser(id);
+  }
+
+  private comparePassword(password: string, repeatPassword: string): boolean {
+    if (password === repeatPassword) return true;
+    return false;
+  }
+
   async generateAccessToken(user: User) {
-    const uuid = user.uuid;
-    const payload = { uuid };
+    const { uuid, id } = user;
+    const payload: TokenPayload = { uuid: uuid, id: id };
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  getCookieWithJwtAccessToken(uuid: string) {
-    const payload = { uuid };
+  getCookieWithJwtAccessToken(user: User) {
+    const { uuid, id } = user;
+    const payload: TokenPayload = { uuid: uuid, id: id };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
@@ -38,7 +68,7 @@ export class AuthService {
       domain: this.configService.get('HOST_NAME'),
       path: '/',
       httpOnly: true,
-      maxAge:
+      'max-age':
         Number(this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN')) * 1000,
     };
   }
@@ -51,32 +81,19 @@ export class AuthService {
     });
   }
 
-  // getCookieWithJwtRefreshToken(uuid: string) {
-  //   const payload = { uuid };
-
-  //   return {
-  //     refresh_token: token,
-  //     domain: this.configService.get('HOST_NAME'),
-  //     path: '/',
-  //     httpOnly: true,
-  //     maxAge:
-  //       Number(this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')) * 1000,
-  //   };
-  // }
-
   getCookiesForLogOut() {
     return {
       accessOptions: {
         domain: this.configService.get('HOST_NAME'),
         path: '/',
         httpOnly: true,
-        maxAge: 0,
+        'max-age': 0,
       },
       refreshOptions: {
         domain: this.configService.get('HOST_NAME'),
         path: '/',
         httpOnly: true,
-        maxAge: 0,
+        'max-age': 0,
       },
     };
   }

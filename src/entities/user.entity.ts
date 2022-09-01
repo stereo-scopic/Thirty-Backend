@@ -39,6 +39,12 @@ export class User {
   @Property({ nullable: true })
   refreshToken: string;
 
+  @Property({
+    nullable: true,
+    hidden: true,
+  })
+  deleted_at: Date;
+
   constructor(uuid: string, token: string) {
     this.uuid = uuid;
     this.refreshToken = token;
