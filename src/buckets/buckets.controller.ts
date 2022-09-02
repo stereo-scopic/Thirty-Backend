@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { Bucket } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
@@ -56,5 +56,11 @@ export class BucketsController {
   ): Promise<Bucket> {
     const user = req.user;
     return this.bucketsService.createBucket({ user, challenge });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/')
+  async getUserBucketList(@Req() req): Promise<Bucket[]> {
+    return this.bucketsService.getUserBucketList(req.user);
   }
 }

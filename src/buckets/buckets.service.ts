@@ -53,8 +53,12 @@ export class BucketsService {
       refresh_token: refreshToken,
     };
   }
+
+  async getUserBucketList(user: User): Promise<Bucket[]> {
+    return this.bucketRepository.find({
+      user: {
+        id: user.id,
+      },
+    });
+  }
 }
-// const user = await this.userService.createUser(uuid);
-// const bucket = await this.createBucket({ user, challenge });
-// this.bucketRepository.persist(bucket);
-// await this.userService.setCurrentRefreshToken(refreshToken, user.id);
