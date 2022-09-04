@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { Bucket } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
+import { PoliciesGuard } from '../auth/guards';
+import { CheckPolicies } from 'src/casl/casl-policy.decorator';
+import { AppAbility } from 'src/casl/casl-ability.factory';
+import { Action } from 'src/casl/permitted-action.enum';
 
 import {
   ApiBody,
@@ -62,5 +74,16 @@ export class BucketsController {
   @Get('/')
   async getUserBucketList(@Req() req): Promise<Bucket[]> {
     return this.bucketsService.getUserBucketList(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @Get('/:bucket_id')
+  @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, Bucket))
+  async getBucketById(
+    @Req() req,
+    @Param('bucket_id') bucketId: string,
+  ): Promise<Bucket> {
+    console.log('user', req.user);
+    return this.bucketsService.getBucketById(bucketId);
   }
 }

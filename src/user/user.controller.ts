@@ -7,6 +7,8 @@ import {
   Req,
   Patch,
   Body,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -16,6 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
+import { User } from 'src/entities';
 import { AuthorizedUserDto } from './dto/authorized-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
@@ -31,17 +34,19 @@ export class UserController {
     return this.userService.deleteUser(uuid);
   }
 
+  @Get('/profile')
   @ApiOperation({ summary: `프로필 조회` })
   @ApiResponse({
     status: 200,
     type: AuthorizedUserDto,
   })
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
-  @Get('/profile')
-  async getUserProfile(@Req() req): Promise<AuthorizedUserDto> {
+  async getUserProfile(@Req() req): Promise<User> {
     return this.userService.getById(req.user.id);
   }
 
+  @Patch('/profile')
   @ApiOperation({ summary: `유저 정보 수정` })
   @ApiBody({
     schema: {
@@ -58,12 +63,12 @@ export class UserController {
     status: 200,
     type: AuthorizedUserDto,
   })
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
-  @Patch('/profile')
   async update(
     @Req() req,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<AuthorizedUserDto> {
+  ): Promise<User> {
     return this.userService.update(req.user, updateUserDto);
   }
 }

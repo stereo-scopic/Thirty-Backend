@@ -61,4 +61,8 @@ export class BucketsService {
       },
     });
   }
+
+  async getBucketById(bucketId: string): Promise<Bucket> {
+    return this.bucketRepository.findOne({ id: bucketId });
+  }
 }
