@@ -1,12 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterUserDto {
-  @ApiProperty({
-    example: `adfa8b368bcd91d3d830`,
-    description: `user unique id`,
-    type: 'string',
-  })
-  id: string;
+  id?: string;
 
   @ApiProperty({
     example: `example@thirty.com`,
