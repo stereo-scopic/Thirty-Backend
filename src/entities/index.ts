@@ -4,3 +4,5 @@ export * from './categories.entity';
 export * from './challenges.entity';
 export * from './user.entity';
 export * from './mission.entity';
+export * from './stamp.entity';
+export * from './answer.entity';

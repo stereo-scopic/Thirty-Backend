@@ -1,7 +1,15 @@
-import { Entity, Property, PrimaryKey, ManyToOne } from '@mikro-orm/core';
+import {
+  Entity,
+  Property,
+  PrimaryKey,
+  ManyToOne,
+  OneToMany,
+  Collection,
+} from '@mikro-orm/core';
 import { BucketStatus } from '../buckets/bucket-status.enum';
 import { Challenge } from './challenges.entity';
 import { User } from './user.entity';
+import { Answer } from './answer.entity';
 
 import * as crypto from 'crypto';
 import { ApiProperty } from '@nestjs/swagger';
@@ -27,6 +35,12 @@ export class Bucket {
 
   @Property({ default: 0 })
   count: number;
+
+  @OneToMany({
+    entity: () => Answer,
+    mappedBy: 'bucket',
+  })
+  answer: Collection<Answer>;
 
   @Property({ type: 'string', default: BucketStatus.WORKING_ON })
   status: BucketStatus;

@@ -2,7 +2,15 @@ import { MikroOrmModuleOptions as Options } from '@mikro-orm/nestjs';
 import { LoadStrategy } from '@mikro-orm/core';
 import { SqlHighlighter } from '@mikro-orm/sql-highlighter';
 import { Logger } from '@nestjs/common';
-import { Bucket, Category, Challenge, Mission, User } from '../entities';
+import {
+  Answer,
+  Bucket,
+  Category,
+  Challenge,
+  Mission,
+  Stamp,
+  User,
+} from '../entities';
 
 const logger = new Logger('MikroORM');
 
@@ -14,7 +22,7 @@ export const config: Options = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
 
-  entities: [User, Category, Challenge, Mission, Bucket],
+  entities: [User, Category, Challenge, Mission, Bucket, Answer, Stamp],
   debug: true,
 
   loadStrategy: LoadStrategy.JOINED,
