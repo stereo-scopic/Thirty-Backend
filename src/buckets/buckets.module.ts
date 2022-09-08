@@ -5,6 +5,7 @@ import { BucketsService } from './buckets.service';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
+import { CaslModule } from 'src/casl/casl.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { UserModule } from 'src/user/user.module';
     UserModule,
     BucketsModule,
     AuthModule,
+    CaslModule,
   ],
   providers: [BucketsService],
   controllers: [BucketsController],

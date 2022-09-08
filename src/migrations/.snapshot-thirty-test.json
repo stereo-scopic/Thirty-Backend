@@ -150,8 +150,8 @@
           "default": "current_timestamp",
           "mappedType": "datetime"
         },
-        "type": {
-          "name": "type",
+        "role": {
+          "name": "role",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,

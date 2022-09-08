@@ -1,8 +1,9 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { UserType } from '../user/user-type.enum';
+import { Role } from '../user/user-role.enum';
 import { UserVisiblity } from '../user/user-visibility.enum';
 
 import * as crypto from 'crypto';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -15,6 +16,7 @@ export class User {
   @Property({ nullable: true, unique: true })
   email: string;
 
+  @Exclude()
   @Property({ nullable: true })
   password: string;
 
@@ -30,15 +32,17 @@ export class User {
   })
   updated_at: Date = new Date();
 
-  @Property({ type: 'string', default: UserType.BASIC })
-  type: UserType;
+  @Property({ type: 'string', default: Role.BASIC })
+  role: Role;
 
   @Property({ type: 'string', default: UserVisiblity.PRIVATE })
   visibility: UserVisiblity;
 
+  @Exclude()
   @Property({ nullable: true })
   refreshToken: string;
 
+  @Exclude()
   @Property({
     nullable: true,
     hidden: true,

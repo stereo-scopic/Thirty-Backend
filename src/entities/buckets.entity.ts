@@ -16,10 +16,7 @@ export class Bucket {
   @PrimaryKey()
   id: string;
 
-  @ManyToOne({
-    serializer: (value) => value.id,
-    serializedName: 'userId',
-  })
+  @ManyToOne()
   user: User;
 
   @ManyToOne({
