@@ -4,10 +4,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
+import { IBucketsDetail } from './buckets-detail.interface';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
-import * as AWS from 'aws-sdk';
 
 @Injectable()
 export class BucketsService {
@@ -65,8 +65,17 @@ export class BucketsService {
     });
   }
 
-  async getBucketById(bucketId: string): Promise<Bucket> {
-    return this.bucketRepository.findOne({ id: bucketId });
+  async getBucketById(bucketId: string): Promise<IBucketsDetail> {
+    const bucket = await this.bucketRepository.findOne({ id: bucketId });
+    const answers = await this.answerRepository.find({
+      bucket: {
+        id: bucketId,
+      },
+    });
+    return {
+      bucket: bucket,
+      answers: answers,
+    };
   }
 
   async createAnswer(
@@ -74,7 +83,9 @@ export class BucketsService {
     imageFileUrl: string,
     createAnswerDto: CreateAnswerDto,
   ): Promise<Answer> {
-    const bucket = await this.getBucketById(bucketId);
+    const bucket = await this.bucketRepository.findOne({
+      id: bucketId,
+    });
 
     createAnswerDto.bucket = bucket;
     createAnswerDto.image = imageFileUrl;

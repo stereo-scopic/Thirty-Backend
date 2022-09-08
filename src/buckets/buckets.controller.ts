@@ -15,13 +15,10 @@ import { Bucket, Answer } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
-import { PoliciesGuard } from '../auth/guards';
-import { CheckPolicies } from 'src/casl/casl-policy.decorator';
-import { AppAbility } from 'src/casl/casl-ability.factory';
-import { Action } from 'src/casl/permitted-action.enum';
 import { uploadFileOnAwsS3Bucket } from 'src/utils/file-upload';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAnswerDto } from './dto/create-answer.dto';
+import { IBucketsDetail } from './buckets-detail.interface';
 
 import {
   ApiBody,
@@ -82,20 +79,18 @@ export class BucketsController {
     return this.bucketsService.getUserBucketList(req.user);
   }
 
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/:bucket_id')
-  @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, Bucket))
   async getBucketById(
-    @Req() req,
     @Param('bucket_id') bucketId: string,
-  ): Promise<Bucket> {
+  ): Promise<IBucketsDetail> {
     return this.bucketsService.getBucketById(bucketId);
   }
 
   @Post('/:bucket_id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
-  async createAnswerOfBucket(
+  async createAnswer(
     @Param('bucket_id') bucketId: string,
     @UploadedFile() imageFile,
     @Body() createAnswerDto: CreateAnswerDto,
