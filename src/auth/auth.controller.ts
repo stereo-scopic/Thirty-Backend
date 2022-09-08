@@ -10,12 +10,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { User } from 'src/entities';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { LocalAuthGuard } from './guards/local-auth.guards';
-import cookie from 'cookie';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AuthorizedUserDto } from 'src/user/dto/authorized-user.dto';
@@ -32,7 +30,9 @@ export class AuthController {
     type: RegisterUserDto,
   })
   @Post('/signup')
-  async signup(@Body() registerUserDto: RegisterUserDto) {
+  @UseGuards(JwtAuthGuard)
+  async signup(@Req() req, @Body() registerUserDto: RegisterUserDto) {
+    registerUserDto.id = req.user.id;
     return this.authService.signUp(registerUserDto);
   }
 
