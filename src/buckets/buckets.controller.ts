@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Req,
   UploadedFile,
@@ -105,5 +106,14 @@ export class BucketsController {
       uploadedImageUrl,
       createAnswerDto,
     );
+  }
+
+  @Get('/:bucket_id/date/:date')
+  @UseGuards(JwtAuthGuard)
+  async getAnswerDetail(
+    @Param('bucket_id') bucketId: string,
+    @Param('date', ParseIntPipe) date: number,
+  ): Promise<Answer> {
+    return this.bucketsService.getAnswerByBucketAndDate(bucketId, date);
   }
 }

@@ -87,4 +87,16 @@ export class BucketsService {
 
     return answer;
   }
+
+  async getAnswerByBucketAndDate(
+    bucketId: string,
+    date: number,
+  ): Promise<Answer> {
+    return this.answerRepository.findOne({
+      bucket: {
+        id: bucketId,
+      },
+      date: date,
+    });
+  }
 }
