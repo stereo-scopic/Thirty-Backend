@@ -5,10 +5,12 @@ import {
   Param,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
-import { Bucket } from 'src/entities';
+import { Bucket, Answer } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
@@ -16,6 +18,9 @@ import { PoliciesGuard } from '../auth/guards';
 import { CheckPolicies } from 'src/casl/casl-policy.decorator';
 import { AppAbility } from 'src/casl/casl-ability.factory';
 import { Action } from 'src/casl/permitted-action.enum';
+import { uploadFileOnAwsS3Bucket } from 'src/utils/file-upload';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateAnswerDto } from './dto/create-answer.dto';
 
 import {
   ApiBody,
@@ -83,7 +88,22 @@ export class BucketsController {
     @Req() req,
     @Param('bucket_id') bucketId: string,
   ): Promise<Bucket> {
-    console.log('user', req.user);
     return this.bucketsService.getBucketById(bucketId);
+  }
+
+  @Post('/:bucket_id')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  async createAnswerOfBucket(
+    @Param('bucket_id') bucketId: string,
+    @UploadedFile() imageFile,
+    @Body() createAnswerDto: CreateAnswerDto,
+  ): Promise<Answer> {
+    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
+    return this.bucketsService.createAnswer(
+      bucketId,
+      uploadedImageUrl,
+      createAnswerDto,
+    );
   }
 }
