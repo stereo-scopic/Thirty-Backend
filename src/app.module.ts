@@ -11,6 +11,7 @@ import { ChallengeModule } from './challenge/challenge.module';
 import { MikroORM } from '@mikro-orm/core';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
     BucketsModule,
     ChallengeModule,
     UserModule,
+    CaslModule,
   ],
 })
 export class AppModule implements NestModule, OnModuleInit {

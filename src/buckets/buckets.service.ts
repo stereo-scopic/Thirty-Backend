@@ -2,9 +2,10 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
-import { Bucket, Challenge, User } from 'src/entities';
+import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
-import { UserService } from 'src/user/user.service';
+import { BucketsDetail } from './dto/buckets-detail.dto';
+import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 
@@ -19,6 +20,8 @@ export class BucketsService {
     private readonly userRepository: EntityRepository<User>,
     @InjectRepository(Challenge)
     private readonly challengeRepository: EntityRepository<Challenge>,
+    @InjectRepository(Answer)
+    private readonly answerRepository: EntityRepository<Answer>,
   ) {}
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<Bucket> {
@@ -53,8 +56,58 @@ export class BucketsService {
       refresh_token: refreshToken,
     };
   }
+
+  async getUserBucketList(user: User): Promise<Bucket[]> {
+    return this.bucketRepository.find({
+      user: {
+        id: user.id,
+      },
+    });
+  }
+
+  async getBucketById(bucketId: string): Promise<BucketsDetail> {
+    const bucket = await this.bucketRepository.findOne({ id: bucketId });
+    const answers = await this.answerRepository.find({
+      bucket: {
+        id: bucketId,
+      },
+    });
+    return {
+      bucket: bucket,
+      answers: answers,
+    };
+  }
+
+  async createAnswer(
+    bucketId: string,
+    imageFileUrl: string,
+    createAnswerDto: CreateAnswerDto,
+  ): Promise<Answer> {
+    const bucket = await this.bucketRepository.findOne({
+      id: bucketId,
+    });
+
+    createAnswerDto.bucket = bucket;
+    createAnswerDto.image = imageFileUrl;
+
+    const answer = this.answerRepository.create(createAnswerDto);
+    this.answerRepository.persistAndFlush(answer);
+
+    bucket.count += 1;
+    this.bucketRepository.persistAndFlush(bucket);
+
+    return answer;
+  }
+
+  async getAnswerByBucketAndDate(
+    bucketId: string,
+    date: number,
+  ): Promise<Answer> {
+    return this.answerRepository.findOne({
+      bucket: {
+        id: bucketId,
+      },
+      date: date,
+    });
+  }
 }
-// const user = await this.userService.createUser(uuid);
-// const bucket = await this.createBucket({ user, challenge });
-// this.bucketRepository.persist(bucket);
-// await this.userService.setCurrentRefreshToken(refreshToken, user.id);

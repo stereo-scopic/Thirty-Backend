@@ -5,8 +5,6 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
 import { crypt } from 'src/utils/crypt';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthorizedUserDto } from './dto/authorized-user.dto';
-import { nextTick } from 'process';
 
 @Injectable()
 export class UserService {
@@ -37,9 +35,7 @@ export class UserService {
   }
 
   async getById(id: string): Promise<any> {
-    const { password, refreshToken, ...user } =
-      await this.userRepository.findOne({ id: id });
-    return user;
+    return this.userRepository.findOne({ id: id });
   }
 
   async getByUuid(uuid: string): Promise<User> {
@@ -50,20 +46,21 @@ export class UserService {
     return this.userRepository.findOne({ email: email });
   }
 
-  async update(
-    user: User,
-    updateUserDto: UpdateUserDto,
-  ): Promise<AuthorizedUserDto> {
+  async update(user: User, updateUserDto: UpdateUserDto): Promise<User> {
     await this.userRepository.nativeUpdate({ id: user.id }, updateUserDto);
+
+    // TODO: DB에서 업데이트 된 결과를 받아올 수 있는 방법 찾아서 리팩토링
     if (updateUserDto.nickname) user.nickname = updateUserDto.nickname;
     if (updateUserDto.visibility) user.visibility = updateUserDto.visibility;
-    const { password, refreshToken, ...result } = user;
-    return result;
+
+    return user;
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
-    if (crypt.isEqualToHashed(refreshToken, user.refreshToken)) return user;
+    if (crypt.isEqualToHashed(refreshToken, user.refreshToken)) {
+      return user;
+    }
     throw new UnauthorizedException();
   }
 

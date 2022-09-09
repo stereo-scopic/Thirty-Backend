@@ -23,7 +23,6 @@ export class AuthService {
     );
     if (user && isPasswordRight) {
       const { password, refreshToken, ...result } = user;
-      console.log('result:', result);
       return result;
     }
     return null;

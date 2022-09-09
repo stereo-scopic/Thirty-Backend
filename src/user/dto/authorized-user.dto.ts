@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserType } from '../user-type.enum';
+import { Role } from '../user-role.enum';
 import { UserVisiblity } from '../user-visibility.enum';
 
 export class AuthorizedUserDto {
@@ -46,10 +46,10 @@ export class AuthorizedUserDto {
 
   @ApiProperty({
     example: `BASIC`,
-    enum: UserType,
+    enum: Role,
     description: `유저 타입`,
   })
-  type: UserType;
+  role: Role;
 
   @ApiProperty({
     example: `PUBLIC`,
@@ -57,11 +57,4 @@ export class AuthorizedUserDto {
     description: `챌린지 공개 여부`,
   })
   visibility: UserVisiblity;
-
-  @ApiProperty({
-    example: `2022-08-25T00:56:47.000Z`,
-    description: `탈퇴 처리 날짜`,
-    type: `datetime`,
-  })
-  deleted_at: Date;
 }
