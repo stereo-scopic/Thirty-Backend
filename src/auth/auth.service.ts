@@ -17,15 +17,16 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.getByEmail(email);
+    if (!user) return null;
+
     const isPasswordRight = await crypt.isEqualToHashed(
       password,
       user.password,
     );
-    if (user && isPasswordRight) {
-      const { password, refreshToken, ...result } = user;
-      return result;
+    if (!isPasswordRight) {
+      return null;
     }
-    return null;
+    return user;
   }
 
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {

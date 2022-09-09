@@ -20,7 +20,7 @@ export class UserService {
   }
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
-    const { id, password, password_repeat, email } = registerUserDto;
+    const { id, password, email } = registerUserDto;
     const hashedPassword = await crypt.getHashedValue(password);
     await this.userRepository.nativeUpdate(
       { id: id },
