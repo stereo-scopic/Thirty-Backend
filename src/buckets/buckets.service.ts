@@ -4,6 +4,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
+import { BucketStatus } from './bucket-status.enum';
 import { BucketsDetail } from './dto/buckets-detail.dto';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
@@ -25,6 +26,9 @@ export class BucketsService {
   ) {}
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<Bucket> {
+    const { user } = createBucketDto;
+    if (await this.isSameChallengeBucketWorkedOn(user))
+      throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
     return this.bucketRepository.create(createBucketDto);
   }
 
@@ -109,5 +113,14 @@ export class BucketsService {
       },
       date: date,
     });
+  }
+
+  private async isSameChallengeBucketWorkedOn(user: User): Promise<boolean> {
+    const bucket = await this.bucketRepository.find({
+      user: user,
+      status: BucketStatus.WORKING_ON,
+    });
+    if (bucket) return true;
+    return false;
   }
 }

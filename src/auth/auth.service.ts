@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entities';
@@ -17,36 +17,25 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.getByEmail(email);
+    if (!user) return null;
+
     const isPasswordRight = await crypt.isEqualToHashed(
       password,
       user.password,
     );
-    if (user && isPasswordRight) {
-      const { password, refreshToken, ...result } = user;
-      return result;
+    if (!isPasswordRight) {
+      return null;
     }
-    return null;
+    return user;
   }
 
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {
-    const {
-      password,
-      password_repeat: repeatPassword,
-      ...info
-    } = registerUserDto;
-    const isPasswordConfirmed = this.comparePassword(password, repeatPassword);
-    if (!isPasswordConfirmed)
-      throw new BadRequestException(`비밀번호가 맞지 않습니다.`);
+    const { password, ...info } = registerUserDto;
     return this.userService.register(registerUserDto);
   }
 
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
-  }
-
-  private comparePassword(password: string, repeatPassword: string): boolean {
-    if (password === repeatPassword) return true;
-    return false;
   }
 
   async generateAccessToken(user: User) {
