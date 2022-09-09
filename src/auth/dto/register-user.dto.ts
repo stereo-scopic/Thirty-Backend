@@ -16,11 +16,4 @@ export class RegisterUserDto {
     type: 'string',
   })
   password: string;
-
-  @ApiProperty({
-    example: `password1`,
-    description: `비밀번호 확인`,
-    type: 'string',
-  })
-  password_repeat: string;
 }
