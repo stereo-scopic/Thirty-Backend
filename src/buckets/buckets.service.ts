@@ -4,7 +4,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
-import { IBucketsDetail } from './buckets-detail.interface';
+import { BucketsDetail } from './dto/buckets-detail.dto';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
@@ -65,7 +65,7 @@ export class BucketsService {
     });
   }
 
-  async getBucketById(bucketId: string): Promise<IBucketsDetail> {
+  async getBucketById(bucketId: string): Promise<BucketsDetail> {
     const bucket = await this.bucketRepository.findOne({ id: bucketId });
     const answers = await this.answerRepository.find({
       bucket: {

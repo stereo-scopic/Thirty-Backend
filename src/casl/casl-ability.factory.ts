@@ -21,11 +21,9 @@ export class CaslAbilityFactory {
       Ability<[Action, Subjects]>
     >(Ability as AbilityClass<AppAbility>);
 
-    if (user.role === Role.ADMIN) {
-      can(Action.Manage, 'all');
-    }
-
-    can(Action.Read, Bucket, { user: { visibility: UserVisiblity.PUBLIC } });
+    can(Action.Read, Bucket, {
+      user: {},
+    });
 
     return build({
       detectSubjectType: (item) =>

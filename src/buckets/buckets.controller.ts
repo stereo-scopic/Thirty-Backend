@@ -18,13 +18,16 @@ import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { uploadFileOnAwsS3Bucket } from 'src/utils/file-upload';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAnswerDto } from './dto/create-answer.dto';
-import { IBucketsDetail } from './buckets-detail.interface';
+import { BucketsDetail } from './dto/buckets-detail.dto';
 
 import {
+  ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -73,22 +76,43 @@ export class BucketsController {
     return this.bucketsService.createBucket({ user, challenge });
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: `유저의 챌린지 버킷 리스트` })
+  @ApiResponse({
+    status: 200,
+    description: `Return User's Challenge Bucket List`,
+    type: Bucket,
+    isArray: true,
+  })
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getUserBucketList(@Req() req): Promise<Bucket[]> {
     return this.bucketsService.getUserBucketList(req.user);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: `챌린지 버킷 상세 조회` })
+  @ApiResponse({
+    status: 200,
+    description: `버킷 상세 조회`,
+    type: BucketsDetail,
+  })
   @UseGuards(JwtAuthGuard)
   @Get('/:bucket_id')
   async getBucketById(
     @Param('bucket_id') bucketId: string,
-  ): Promise<IBucketsDetail> {
+  ): Promise<BucketsDetail> {
     return this.bucketsService.getBucketById(bucketId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: `답변 등록` })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateAnswerDto,
+  })
+  @ApiCreatedResponse({ type: Answer })
   @Post('/:bucket_id')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   async createAnswer(
     @Param('bucket_id') bucketId: string,
@@ -103,6 +127,12 @@ export class BucketsController {
     );
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: `답변 상세 조회` })
+  @ApiResponse({
+    status: 200,
+    type: Answer,
+  })
   @Get('/:bucket_id/date/:date')
   @UseGuards(JwtAuthGuard)
   async getAnswerDetail(
