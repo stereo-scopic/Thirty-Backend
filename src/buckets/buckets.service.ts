@@ -4,6 +4,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
+import { UserService } from 'src/user/user.service';
 import { BucketStatus } from './bucket-status.enum';
 import { BucketsDetail } from './dto/buckets-detail.dto';
 import { CreateAnswerDto } from './dto/create-answer.dto';
@@ -17,64 +18,60 @@ export class BucketsService {
     private readonly authService: AuthService,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
-    @InjectRepository(User)
-    private readonly userRepository: EntityRepository<User>,
+    private readonly userService: UserService,
     @InjectRepository(Challenge)
     private readonly challengeRepository: EntityRepository<Challenge>,
     @InjectRepository(Answer)
     private readonly answerRepository: EntityRepository<Answer>,
   ) {}
 
-  async createBucket(createBucketDto: CreateBucketDto): Promise<Bucket> {
-    const { user } = createBucketDto;
-    if (await this.isSameChallengeBucketWorkedOn(user))
+  async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
+    const { user, challenge: challengeId } = createBucketDto;
+    if (await this.isSameChallengeBucketWorkedOn(user, challengeId))
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
-    return this.bucketRepository.create(createBucketDto);
+
+    const challenge = await this.challengeRepository.findOneOrFail({
+      id: challengeId,
+    });
+    const bucket = new Bucket(user, challenge);
+    await this.bucketRepository.persistAndFlush(bucket);
+    return bucket;
   }
 
   async createNewbieAndBucket(
     createNewbieBucketDto: CreateNewbieBucketDto,
   ): Promise<UserTokenDto> {
-    const { uuid, challenge: challengeId } = createNewbieBucketDto;
+    const { uuid, challenge } = createNewbieBucketDto;
 
-    const refreshToken = this.authService.getRefreshToken(uuid);
-    let user: User = null;
-    try {
-      user = new User(uuid, refreshToken);
-      await this.userRepository.persistAndFlush(user);
-    } catch (error) {
-      // duplicate unique key
-      if (error.code == 23505)
-        throw new BadRequestException(`이미 가입한 기록이 있습니다.`);
-      throw new BadRequestException(`가입할 수 없습니다`);
-    }
+    const user: User = await this.userService.createUser(uuid);
+    await this.createBucket({ user, challenge });
 
     const accessToken = this.authService.getCookieWithJwtAccessToken(user);
-    const challenge = await this.challengeRepository.findOne({
-      id: challengeId,
-    });
-    const bucket = new Bucket(user, challenge);
-    this.bucketRepository.persistAndFlush(bucket);
     return {
       access_token: accessToken.access_token,
-      refresh_token: refreshToken,
+      refresh_token: user.refreshToken,
     };
   }
 
-  async getUserBucketList(user: User): Promise<Bucket[]> {
+  async getUserBucketList(
+    user: User,
+    status?: BucketStatus,
+  ): Promise<Bucket[]> {
+    if (!status)
+      return this.bucketRepository.find({
+        user: { id: user.id },
+      });
+
     return this.bucketRepository.find({
-      user: {
-        id: user.id,
-      },
+      user: { id: user.id },
+      status: status,
     });
   }
 
   async getBucketById(bucketId: string): Promise<BucketsDetail> {
     const bucket = await this.bucketRepository.findOne({ id: bucketId });
     const answers = await this.answerRepository.find({
-      bucket: {
-        id: bucketId,
-      },
+      bucket: { id: bucketId },
     });
     return {
       bucket: bucket,
@@ -98,7 +95,9 @@ export class BucketsService {
     this.answerRepository.persistAndFlush(answer);
 
     bucket.count += 1;
-    this.bucketRepository.persistAndFlush(bucket);
+    if (bucket.count > 30 || bucket.status !== BucketStatus.WORKING_ON)
+      throw new BadRequestException(`종료된 챌린지 입니다.`);
+    await this.bucketRepository.persistAndFlush(bucket);
 
     return answer;
   }
@@ -108,19 +107,22 @@ export class BucketsService {
     date: number,
   ): Promise<Answer> {
     return this.answerRepository.findOne({
-      bucket: {
-        id: bucketId,
-      },
+      bucket: { id: bucketId },
       date: date,
     });
   }
 
-  private async isSameChallengeBucketWorkedOn(user: User): Promise<boolean> {
+  private async isSameChallengeBucketWorkedOn(
+    user: User,
+    challengeId: number,
+  ): Promise<boolean> {
     const bucket = await this.bucketRepository.find({
       user: user,
+      challenge: challengeId,
       status: BucketStatus.WORKING_ON,
     });
-    if (bucket) return true;
+
+    if (bucket.length > 0) return true;
     return false;
   }
 }
