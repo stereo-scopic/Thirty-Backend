@@ -6,3 +6,5 @@ export * from './user.entity';
 export * from './mission.entity';
 export * from './stamp.entity';
 export * from './answer.entity';
+export * from './prize.entity';
+export * from './reward.entity';
