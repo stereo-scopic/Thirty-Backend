@@ -84,6 +84,8 @@ export class BucketsController {
     type: `string`,
     enum: BucketStatus,
     enumName: `버킷 진행 상태`,
+    required: false,
+    description: `포함X:전체/WRK: 진행중/CMP:완료/ABD:중단`,
   })
   @ApiResponse({
     status: 200,
