@@ -8,6 +8,8 @@ import {
   Category,
   Challenge,
   Mission,
+  Prize,
+  Reward,
   Stamp,
   User,
 } from '../entities';
@@ -22,17 +24,27 @@ export const config: Options = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
 
-  entities: [User, Category, Challenge, Mission, Bucket, Answer, Stamp],
+  entities: [
+    User,
+    Category,
+    Challenge,
+    Mission,
+    Bucket,
+    Answer,
+    Stamp,
+    Prize,
+    Reward,
+  ],
   debug: true,
 
   loadStrategy: LoadStrategy.JOINED,
   highlighter: new SqlHighlighter(),
   registerRequestContext: false,
 
-  migrations: {
-    path: 'dist/migrations',
-    pathTs: 'src/migrations',
-  },
+  // migrations: {
+  //   path: 'dist/migrations',
+  //   pathTs: 'src/migrations',
+  // },
 
   logger: logger.log.bind(logger),
 };
