@@ -17,6 +17,7 @@ import { LocalAuthGuard } from './guards/local-auth.guards';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AuthorizedUserDto } from 'src/user/dto/authorized-user.dto';
+import { User } from 'src/entities';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -24,15 +25,16 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: `회원가입` })
+  @ApiBody({ type: RegisterUserDto })
   @ApiResponse({
     status: 201,
     description: `회원가입 성공`,
-    type: RegisterUserDto,
+    type: User,
   })
   @Post('/signup')
   @UseGuards(JwtAuthGuard)
   async signup(@Req() req, @Body() registerUserDto: RegisterUserDto) {
-    registerUserDto.id = req.user.id;
+    registerUserDto.user = req.user;
     return this.authService.signUp(registerUserDto);
   }
 
