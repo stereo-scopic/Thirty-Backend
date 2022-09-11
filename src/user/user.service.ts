@@ -1,22 +1,39 @@
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from 'src/entities';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
 import { crypt } from 'src/utils/crypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   async createUser(uuid: string): Promise<User> {
-    const user = this.userRepository.create({ uuid: uuid });
-    await this.transaction(user);
-    return user;
+    const refreshToken = this.authService.getRefreshToken(uuid);
+    try {
+      const user = new User(uuid, refreshToken);
+      await this.userRepository.persistAndFlush(user);
+      return user;
+    } catch (error) {
+      // duplicate unique key
+      if (error.code == 23505)
+        throw new BadRequestException(`이미 가입한 기록이 있습니다.`);
+      throw new BadRequestException(`가입할 수 없습니다`);
+    }
   }
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {

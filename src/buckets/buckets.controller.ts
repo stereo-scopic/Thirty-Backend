@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -13,12 +14,13 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { Bucket, Answer } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
-import { BucketsService } from './buckets.service';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
+import { CreateAnswerDto } from './dto/create-answer.dto';
+import { BucketsService } from './buckets.service';
+import { BucketsDetail } from './dto/buckets-detail.dto';
+import { BucketStatus } from './bucket-status.enum';
 import { uploadFileOnAwsS3Bucket } from 'src/utils/file-upload';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateAnswerDto } from './dto/create-answer.dto';
-import { BucketsDetail } from './dto/buckets-detail.dto';
 
 import {
   ApiBearerAuth,
@@ -27,6 +29,7 @@ import {
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -63,9 +66,7 @@ export class BucketsController {
       },
     },
   })
-  @ApiCreatedResponse({
-    type: Bucket,
-  })
+  @ApiCreatedResponse({ type: Bucket })
   @UseGuards(JwtAuthGuard)
   @Post('/add/current')
   createExistingUserBucket(
@@ -78,6 +79,14 @@ export class BucketsController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: `유저의 챌린지 버킷 리스트` })
+  @ApiQuery({
+    name: `status`,
+    type: `string`,
+    enum: BucketStatus,
+    enumName: `버킷 진행 상태`,
+    required: false,
+    description: `포함X:전체/WRK: 진행중/CMP:완료/ABD:중단`,
+  })
   @ApiResponse({
     status: 200,
     description: `Return User's Challenge Bucket List`,
@@ -86,8 +95,11 @@ export class BucketsController {
   })
   @UseGuards(JwtAuthGuard)
   @Get('/')
-  async getUserBucketList(@Req() req): Promise<Bucket[]> {
-    return this.bucketsService.getUserBucketList(req.user);
+  async getUserBucketList(
+    @Req() req,
+    @Query('status') status?: BucketStatus,
+  ): Promise<Bucket[]> {
+    return this.bucketsService.getUserBucketList(req.user, status);
   }
 
   @ApiBearerAuth()

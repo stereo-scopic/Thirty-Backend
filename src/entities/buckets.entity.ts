@@ -23,13 +23,16 @@ export class Bucket {
     type: `string`,
     description: `user unique id`,
   })
-  @ManyToOne()
+  @ManyToOne({
+    serializedName: 'userId',
+    serializer: (u) => u.id,
+  })
   user: User;
 
-  @ManyToOne({
-    serializer: (value) => value.title,
-    serializedName: 'challengeName',
+  @ApiProperty({
+    type: () => Challenge,
   })
+  @ManyToOne({ eager: true })
   challenge: Challenge;
 
   @ApiProperty({
