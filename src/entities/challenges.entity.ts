@@ -38,6 +38,7 @@ export class Challenge extends BaseEntity {
 
   @ApiProperty({
     type: () => User,
+    nullable: true,
   })
   @ManyToOne({
     entity: () => User,
@@ -54,9 +55,6 @@ export class Challenge extends BaseEntity {
   @Property({ nullable: true })
   thumbnail: string;
 
-  @ApiProperty({
-    type: () => Mission,
-  })
   @OneToMany(() => Mission, (m) => m.challenge)
   missions = new Collection<Mission>(this);
 }
