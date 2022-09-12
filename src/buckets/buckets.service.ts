@@ -1,28 +1,29 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable } from '@nestjs/common';
+
 import { AuthService } from 'src/auth/auth.service';
 import { ChallengeService } from 'src/challenge/challenge.service';
-import { Answer, Bucket, User } from 'src/entities';
-import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { UserService } from 'src/user/user.service';
-import { BucketStatus } from './bucket-status.enum';
+import { Answer, Bucket, Challenge, User } from 'src/entities';
+import { UserTokenDto } from 'src/user/dto/user-token.dto';
 import { BucketsDetail } from './dto/buckets-detail.dto';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
+import { BucketStatus } from './bucket-status.enum';
 
 @Injectable()
 export class BucketsService {
   constructor(
-    // private readonly userService: UserService,
     private readonly authService: AuthService,
-    @InjectRepository(Bucket)
-    private readonly bucketRepository: EntityRepository<Bucket>,
     private readonly userService: UserService,
     private readonly challengeService: ChallengeService,
+    @InjectRepository(Bucket)
+    private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
     private readonly answerRepository: EntityRepository<Answer>,
+    
   ) {}
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
@@ -30,8 +31,10 @@ export class BucketsService {
     if (await this.isSameChallengeBucketWorkedOn(user, challengeId))
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
 
-    const challenge = await this.challengeService.getChallengeById(challengeId);
-    const bucket = new Bucket(user, challenge);
+    const challenge: Challenge = await this.challengeService.getChallengeById(
+      challengeId,
+    );
+    const bucket: Bucket = new Bucket(user, challenge);
     await this.bucketRepository.persistAndFlush(bucket);
     return bucket;
   }
@@ -67,8 +70,8 @@ export class BucketsService {
   }
 
   async getBucketById(bucketId: string): Promise<BucketsDetail> {
-    const bucket = await this.findBucketById(bucketId);
-    const answers = await this.answerRepository.find({
+    const bucket: Bucket = await this.findBucketById(bucketId);
+    const answers: Answer[] = await this.answerRepository.find({
       bucket: { id: bucketId },
     });
     return {
@@ -82,12 +85,12 @@ export class BucketsService {
     imageFileUrl: string,
     createAnswerDto: CreateAnswerDto,
   ): Promise<Answer> {
-    const bucket = await this.findBucketById(bucketId);
+    const bucket: Bucket = await this.findBucketById(bucketId);
 
     createAnswerDto.bucket = bucket;
     createAnswerDto.image = imageFileUrl;
 
-    const answer = this.answerRepository.create(createAnswerDto);
+    const answer: Answer = this.answerRepository.create(createAnswerDto);
     this.answerRepository.persistAndFlush(answer);
 
     bucket.count += 1;
@@ -112,7 +115,7 @@ export class BucketsService {
     bucketId: string,
     status: BucketStatus,
   ): Promise<Bucket> {
-    const bucket = await this.findBucketById(bucketId);
+    const bucket: Bucket = await this.findBucketById(bucketId);
     // TODO: 배포 때 활성화
     // if (!this.isPossibleToChangeBucketStatus(bucket.status))
     //   throw new BadRequestException(`이미 완료된 챌린지 입니다.`);
@@ -133,7 +136,6 @@ export class BucketsService {
     user: User,
     challengeId: number,
   ): Promise<boolean> {
-    const bucket = await this.bucketRepository.find({
       user: user,
       challenge: challengeId,
       status: BucketStatus.WORKING_ON,
