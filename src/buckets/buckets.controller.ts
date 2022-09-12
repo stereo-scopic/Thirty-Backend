@@ -165,14 +165,14 @@ export class BucketsController {
   @UseInterceptors(FileInterceptor('image'))
   async createAnswer(
     @Param('bucket_id') bucketId: string,
-    @UploadedFile() imageFile,
     @Body() createAnswerDto: CreateAnswerDto,
+    @UploadedFile() imageFile?,
   ): Promise<Answer> {
     const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
     return this.bucketsService.createAnswer(
       bucketId,
-      uploadedImageUrl,
       createAnswerDto,
+      uploadedImageUrl,
     );
   }
 

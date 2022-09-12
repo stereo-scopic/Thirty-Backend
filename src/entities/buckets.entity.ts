@@ -74,4 +74,18 @@ export class Bucket {
     this.user = user;
     this.challenge = challenge;
   }
+
+  public isBucketWorkedOn() {
+    if (this.count >= 30 || this.status !== BucketStatus.WORKING_ON) {
+      return false;
+    }
+    return true;
+  }
+
+  public isPossibleToChangeBucketStatus() {
+    if (this.status === BucketStatus.WORKING_ON) {
+      return true;
+    }
+    return false;
+  }
 }

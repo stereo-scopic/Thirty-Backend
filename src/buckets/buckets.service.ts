@@ -27,8 +27,9 @@ export class BucketsService {
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
     const { user, challenge: challengeId } = createBucketDto;
-    if (await this.isSameChallengeBucketWorkedOn(user, challengeId))
+    if (await this.isSameChallengeBucketWorkedOn(user, challengeId)) {
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
+    }
 
     const challenge: Challenge = await this.challengeService.getChallengeById(
       challengeId,
@@ -57,11 +58,11 @@ export class BucketsService {
     user: User,
     status?: BucketStatus,
   ): Promise<Bucket[]> {
-    if (!status)
+    if (!status) {
       return this.bucketRepository.find({
         user: { id: user.id },
       });
-
+    }
     return this.bucketRepository.find({
       user: { id: user.id },
       status: status,
@@ -81,21 +82,28 @@ export class BucketsService {
 
   async createAnswer(
     bucketId: string,
-    imageFileUrl: string,
     createAnswerDto: CreateAnswerDto,
-  ): Promise<Answer> {
+    imageFileUrl?: string,
+  ): Promise<any> {
     const bucket: Bucket = await this.findBucketById(bucketId);
+    if (!bucket.isBucketWorkedOn()) {
+      throw new BadRequestException(`종료된 챌린지 입니다.`);
+    }
 
-    createAnswerDto.bucket = bucket;
-    createAnswerDto.image = imageFileUrl;
-
+    Object.assign(createAnswerDto, {
+      bucket: bucket,
+      image: imageFileUrl,
+    });
     const answer: Answer = this.answerRepository.create(createAnswerDto);
     this.answerRepository.persistAndFlush(answer);
 
     bucket.count += 1;
-    if (bucket.count > 30 || bucket.status !== BucketStatus.WORKING_ON)
-      throw new BadRequestException(`종료된 챌린지 입니다.`);
-    await this.bucketRepository.persistAndFlush(bucket);
+    if (bucket.count === 30) {
+      bucket.status = BucketStatus.COMPLETED;
+      //TODO: Add Reward
+      // Object.assign(answer, {reward: null});
+    }
+    this.bucketRepository.persistAndFlush(bucket);
 
     return answer;
   }
@@ -116,8 +124,9 @@ export class BucketsService {
   ): Promise<Bucket> {
     const bucket: Bucket = await this.findBucketById(bucketId);
     // TODO: 배포 때 활성화
-    // if (!this.isPossibleToChangeBucketStatus(bucket.status))
+    // if (!bucket.isPossibleToChangeBucketStatus()) {
     //   throw new BadRequestException(`이미 완료된 챌린지 입니다.`);
+    // }
     bucket.status = status;
     await this.bucketRepository.persistAndFlush(bucket);
     return bucket;
@@ -141,11 +150,9 @@ export class BucketsService {
       status: BucketStatus.WORKING_ON,
     });
 
-    if (bucket.length > 0) return true;
+    if (bucket.length > 0) {
+      return true;
+    }
     return false;
-  }
-
-  private isPossibleToChangeBucketStatus(oldStatus: BucketStatus) {
-    if (oldStatus === BucketStatus.COMPLETED) return false;
   }
 }
