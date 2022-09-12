@@ -81,6 +81,7 @@ export class BucketsService {
   }
 
   async createAnswer(
+    user: User,
     bucketId: string,
     createAnswerDto: CreateAnswerDto,
     imageFileUrl?: string,
@@ -104,6 +105,7 @@ export class BucketsService {
       // Object.assign(answer, {reward: null});
     }
     this.bucketRepository.persistAndFlush(bucket);
+    this.userService.checkUserAttendance(user);
 
     return answer;
   }

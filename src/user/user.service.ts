@@ -111,7 +111,13 @@ export class UserService {
     );
   }
 
-  private async removeRefreshToken(userId: string) {
-    this.userRepository.nativeUpdate({ id: userId }, { refreshToken: null });
+  async checkUserAttendance(user: User): Promise<void> {
+    user.continuous_attendance += 1;
+    this.userRepository.persistAndFlush(user);
+  }
+
+  private async removeRefreshToken(user: User) {
+    user.refreshToken = null;
+    this.userRepository.persistAndFlush(user);
   }
 }
