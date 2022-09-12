@@ -69,8 +69,8 @@ export class BucketsService {
     });
   }
 
-  async getBucketById(bucketId: string): Promise<BucketsDetail> {
-    const bucket: Bucket = await this.findBucketById(bucketId);
+  async getBucketAndAnswersById(bucketId: string): Promise<BucketsDetail> {
+    const bucket: Bucket = await this.getBucketById(bucketId);
     const answers: Answer[] = await this.answerRepository.find({
       bucket: { id: bucketId },
     });
@@ -85,7 +85,7 @@ export class BucketsService {
     createAnswerDto: CreateAnswerDto,
     imageFileUrl?: string,
   ): Promise<any> {
-    const bucket: Bucket = await this.findBucketById(bucketId);
+    const bucket: Bucket = await this.getBucketById(bucketId);
     if (!bucket.isBucketWorkedOn()) {
       throw new BadRequestException(`종료된 챌린지 입니다.`);
     }
@@ -122,7 +122,7 @@ export class BucketsService {
     bucketId: string,
     status: BucketStatus,
   ): Promise<Bucket> {
-    const bucket: Bucket = await this.findBucketById(bucketId);
+    const bucket: Bucket = await this.getBucketById(bucketId);
     // TODO: 배포 때 활성화
     // if (!bucket.isPossibleToChangeBucketStatus()) {
     //   throw new BadRequestException(`이미 완료된 챌린지 입니다.`);
@@ -132,7 +132,7 @@ export class BucketsService {
     return bucket;
   }
 
-  private async findBucketById(id: string) {
+  private async getBucketById(id: string) {
     try {
       return this.bucketRepository.findOneOrFail(id);
     } catch (error) {

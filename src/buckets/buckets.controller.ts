@@ -153,7 +153,7 @@ export class BucketsController {
   async getBucketById(
     @Param('bucket_id') bucketId: string,
   ): Promise<BucketsDetail> {
-    return this.bucketsService.getBucketById(bucketId);
+    return this.bucketsService.getBucketAndAnswersById(bucketId);
   }
 
   @ApiBearerAuth()
