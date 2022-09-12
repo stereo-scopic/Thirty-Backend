@@ -23,7 +23,6 @@ export class BucketsService {
     private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
     private readonly answerRepository: EntityRepository<Answer>,
-    
   ) {}
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
@@ -136,6 +135,7 @@ export class BucketsService {
     user: User,
     challengeId: number,
   ): Promise<boolean> {
+    const bucket: Bucket[] | void = await this.bucketRepository.find({
       user: user,
       challenge: challengeId,
       status: BucketStatus.WORKING_ON,
