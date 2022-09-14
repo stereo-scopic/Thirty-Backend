@@ -3,6 +3,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { Prize, Reward, User } from 'src/entities';
+import { Relation, RelationStatus } from 'src/entities/relation.entity';
 import { PrizeUserOwnedDto } from './dto/prize-user-owned.dto';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class RewardService {
     private readonly rewardRepository: EntityRepository<Reward>,
     @InjectRepository(Prize)
     private readonly prizeRepository: EntityRepository<Prize>,
+    @InjectRepository(Relation)
+    private readonly relationRepository: EntityRepository<Relation>,
     private readonly em: EntityManager,
   ) {}
 
@@ -64,6 +67,36 @@ export class RewardService {
         continue;
       }
       if (maxAnswerCount != Number(day)) {
+        continue;
+      }
+      await this.createReward(userId, prizeCode);
+      return this.getRewardResult(userId, prizeCode);
+    }
+  }
+
+  /**
+   *
+   * 친구 관련 리워드
+   */
+  async getRewardRelation(user: User) {
+    const userId: string = user.id;
+    const relationshipNumber = await this.em.execute(`
+      select sub_user_id
+           , count(*)
+        from relation
+       where 1=1
+         and sub_user_id = '${userId}'
+         and status = '${RelationStatus.CONFIRMED}'
+    `)[0];
+
+    const fulfilledNumber: string[] = ['01', '05', '10'];
+    for (const num of fulfilledNumber) {
+      const prizeCode: string = 'FR' + num;
+
+      if (await this.isRewardExists(userId, prizeCode)) {
+        continue;
+      }
+      if (relationshipNumber != Number(num)) {
         continue;
       }
       await this.createReward(userId, prizeCode);
