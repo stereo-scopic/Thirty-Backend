@@ -134,12 +134,12 @@ export class BucketsService {
     return bucket;
   }
 
-  private async getBucketById(id: string) {
-    try {
-      return this.bucketRepository.findOneOrFail(id);
-    } catch (error) {
-      throw new BadRequestException(`존재하지 않는 챌린지 버킷입니다.`);
+  private async getBucketById(id: string): Promise<Bucket> {
+    const bucket = await this.bucketRepository.findOne(id);
+    if (!bucket) {
+      throw new BadRequestException(`존재하지 않는 챌린지 버킷 입니다.`);
     }
+    return bucket;
   }
 
   private async isSameChallengeBucketWorkedOn(
