@@ -28,7 +28,7 @@ export class RewardService {
    * @param user
    * @returns
    */
-  async getRewardAttendance(user: User): Promise<object | void> {
+  private async getRewardAttendance(user: User): Promise<object | void> {
     const userId: string = user.id;
     const fulfilledDays: string[] = ['01', '07', '30'];
     for (const day of fulfilledDays) {
@@ -38,6 +38,32 @@ export class RewardService {
         continue;
       }
       if (user.continuous_attendance !== Number(day)) {
+        continue;
+      }
+      await this.createReward(userId, prizeCode);
+      return this.getRewardResult(userId, prizeCode);
+    }
+  }
+
+  /**
+   * 챌린지 달성 관련 리워드
+   * @returns
+   */
+  async getRewardChallenge(user: User) {
+    const userId: string = user.id;
+    const maxAnswerCount: number = await this.getMaximumAnswerCount(userId);
+    if (maxAnswerCount < 1) {
+      return;
+    }
+
+    const fulfilledDays: string[] = ['01', '15', '30'];
+    for (const day of fulfilledDays) {
+      const prizeCode: string = 'CH' + day;
+
+      if (await this.isRewardExists(userId, prizeCode)) {
+        continue;
+      }
+      if (maxAnswerCount != Number(day)) {
         continue;
       }
       await this.createReward(userId, prizeCode);
@@ -84,11 +110,11 @@ export class RewardService {
          , P.NAME
          , P.ILLUST
       FROM REWARD R
-    INNER JOIN PRIZE P
-       ON P.PRIZE_CODE = R.PRIZE_CODE
-    WHERE 1=1
-      AND R.USER_ID = '${userId}'
-      AND P.PRIZE_CODE = '${prizeCode}'
+     INNER JOIN PRIZE P
+        ON P.PRIZE_CODE = R.PRIZE_CODE
+     WHERE 1=1
+       AND R.USER_ID = '${userId}'
+       AND P.PRIZE_CODE = '${prizeCode}'
   `);
     return result;
   }
@@ -126,5 +152,24 @@ export class RewardService {
     }
 
     return userRewardOwnedList;
+  }
+
+  private async getMaximumAnswerCount(userId: string): Promise<number> {
+    const userBucketAnswerCount: any[] = await this.em.execute(`
+      select a.bucket_id,
+             count(a.*)
+        from answer a
+       inner join bucket b
+          on b.id = a.bucket_id
+       where b.user_id = '${userId}'
+       group by a.bucket_id
+    `);
+    let maxAnswerCount = 0;
+    for (const _ of userBucketAnswerCount) {
+      if (maxAnswerCount < _.count) {
+        maxAnswerCount = _.count;
+      }
+    }
+    return maxAnswerCount;
   }
 }
