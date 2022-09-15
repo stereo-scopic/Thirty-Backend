@@ -33,12 +33,12 @@ export class RewardService {
    */
   private async getRewardAttendance(user: User): Promise<object | void> {
     const userId: string = user.id;
-    const fulfilledDays: string[] = ['01', '07', '30'];
+    const fulfilledDays: string[] = ['30', '07', '01'];
     for (const day of fulfilledDays) {
       const prizeCode = 'AT' + day;
 
       if (await this.isRewardExists(userId, prizeCode)) {
-        continue;
+        return;
       }
       if (user.continuous_attendance !== Number(day)) {
         continue;
@@ -59,12 +59,12 @@ export class RewardService {
       return;
     }
 
-    const fulfilledDays: string[] = ['01', '15', '30'];
+    const fulfilledDays: string[] = ['30', '15', '01'];
     for (const day of fulfilledDays) {
       const prizeCode: string = 'CH' + day;
 
       if (await this.isRewardExists(userId, prizeCode)) {
-        continue;
+        return;
       }
       if (maxAnswerCount != Number(day)) {
         continue;
@@ -89,12 +89,12 @@ export class RewardService {
          and status = '${RelationStatus.CONFIRMED}'
     `)[0];
 
-    const fulfilledNumber: string[] = ['01', '05', '10'];
+    const fulfilledNumber: string[] = ['10', '05', '01'];
     for (const num of fulfilledNumber) {
       const prizeCode: string = 'FR' + num;
 
       if (await this.isRewardExists(userId, prizeCode)) {
-        continue;
+        return;
       }
       if (relationshipNumber != Number(num)) {
         continue;
