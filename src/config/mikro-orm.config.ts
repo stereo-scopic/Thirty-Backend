@@ -10,6 +10,7 @@ import {
   Mission,
   Notice,
   Prize,
+  Relation,
   Reward,
   Stamp,
   User,
@@ -36,6 +37,7 @@ export const config: Options = {
     Prize,
     Reward,
     Notice,
+    Relation
   ],
   debug: true,
 
