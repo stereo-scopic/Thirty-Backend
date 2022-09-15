@@ -168,7 +168,7 @@ export class BucketsController {
     @Param('bucket_id') bucketId: string,
     @Body() createAnswerDto: CreateAnswerDto,
     @UploadedFile() imageFile?,
-  ): Promise<Answer> {
+  ): Promise<any> {
     const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
     return this.bucketsService.createAnswer(
       req.user,

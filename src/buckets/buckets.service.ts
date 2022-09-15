@@ -12,6 +12,7 @@ import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
+import { RewardService } from 'src/reward/reward.service';
 
 @Injectable()
 export class BucketsService {
@@ -19,6 +20,7 @@ export class BucketsService {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly challengeService: ChallengeService,
+    private readonly rewardService: RewardService,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
@@ -106,6 +108,11 @@ export class BucketsService {
     }
     this.bucketRepository.persistAndFlush(bucket);
     this.userService.checkUserAttendance(user);
+
+    if (bucket.count === 30) {
+      const rewards = this.rewardService.checkAndGetReward(user);
+      Object.assign(answer, { rewards: rewards });
+    }
 
     return answer;
   }

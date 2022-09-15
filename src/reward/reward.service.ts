@@ -3,7 +3,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { Prize, Reward, User } from 'src/entities';
-import { Relation, RelationStatus } from 'src/entities/relation.entity';
+import { RelationStatus } from 'src/entities/relation.entity';
 import { PrizeUserOwnedDto } from './dto/prize-user-owned.dto';
 
 @Injectable()
@@ -13,8 +13,6 @@ export class RewardService {
     private readonly rewardRepository: EntityRepository<Reward>,
     @InjectRepository(Prize)
     private readonly prizeRepository: EntityRepository<Prize>,
-    @InjectRepository(Relation)
-    private readonly relationRepository: EntityRepository<Relation>,
     private readonly em: EntityManager,
   ) {}
 
@@ -24,6 +22,14 @@ export class RewardService {
       user,
     );
     return this.getPrizeObjectWithUserOwned(allPrizeList, rewardsListUserHave);
+  }
+
+  async checkAndGetReward(user: User) {
+    const rewards: any[] = [];
+    rewards.push(await this.getRewardAttendance(user));
+    rewards.push(await this.getRewardChallenge(user));
+    rewards.push(await this.getRewardRelation(user));
+    return rewards;
   }
 
   /**
