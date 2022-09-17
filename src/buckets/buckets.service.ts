@@ -109,10 +109,10 @@ export class BucketsService {
     this.bucketRepository.persistAndFlush(bucket);
     this.userService.checkUserAttendance(user);
 
-    if (bucket.count === 30) {
-      const rewards = this.rewardService.checkAndGetReward(user);
-      Object.assign(answer, { rewards: rewards });
-    }
+    // if (bucket.count === 30) {
+    //   const rewards = await this.rewardService.checkAndGetReward(user);
+    //   Object.assign(answer, { rewards: rewards });
+    // }
 
     return answer;
   }

@@ -87,12 +87,13 @@ export class RewardService {
   async getRewardRelation(user: User) {
     const userId: string = user.id;
     const relationshipNumber = await this.em.execute(`
-      select sub_user_id
+      select subject_user_id
            , count(*)
         from relation
        where 1=1
-         and sub_user_id = '${userId}'
+         and subject_user_id = '${userId}'
          and status = '${RelationStatus.CONFIRMED}'
+       group by subject_user_id
     `)[0];
 
     const fulfilledNumber: string[] = ['10', '05', '01'];
