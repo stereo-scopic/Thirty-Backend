@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
 import { CaslModule } from 'src/casl/casl.module';
 import { ChallengeModule } from 'src/challenge/challenge.module';
+import { RewardModule } from 'src/reward/reward.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ChallengeModule } from 'src/challenge/challenge.module';
     AuthModule,
     CaslModule,
     ChallengeModule,
+    RewardModule
   ],
   providers: [BucketsService],
   controllers: [BucketsController],

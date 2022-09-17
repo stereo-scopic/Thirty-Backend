@@ -34,7 +34,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { string } from 'joi';
 
 @ApiTags('Buckets')
 @Controller('buckets')
@@ -153,7 +152,7 @@ export class BucketsController {
   async getBucketById(
     @Param('bucket_id') bucketId: string,
   ): Promise<BucketsDetail> {
-    return this.bucketsService.getBucketById(bucketId);
+    return this.bucketsService.getBucketAndAnswersById(bucketId);
   }
 
   @ApiBearerAuth()
@@ -162,17 +161,20 @@ export class BucketsController {
   @ApiBody({ type: CreateAnswerDto })
   @ApiCreatedResponse({ type: Answer })
   @Post('/:bucket_id')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   async createAnswer(
+    @Req() req,
     @Param('bucket_id') bucketId: string,
-    @UploadedFile() imageFile,
     @Body() createAnswerDto: CreateAnswerDto,
-  ): Promise<Answer> {
+    @UploadedFile() imageFile?,
+  ): Promise<any> {
     const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
     return this.bucketsService.createAnswer(
+      req.user,
       bucketId,
-      uploadedImageUrl,
       createAnswerDto,
+      uploadedImageUrl,
     );
   }
 

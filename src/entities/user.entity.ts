@@ -96,6 +96,10 @@ export class User {
   signup_at: Date;
 
   @Exclude()
+  @Property()
+  continuous_attendance: number;
+
+  @Exclude()
   @Property({
     nullable: true,
     hidden: true,
@@ -108,9 +112,6 @@ export class User {
     this.id = crypto.randomBytes(10).toString('hex');
   }
 }
-
-// @ManyToMany(() => Bucket, bucket => bucket.user, { hidden: true })
-// buckets: new Collection<Bucket>(this);
 
 // @OneToMany(() => User, user => user.friends, { hidden: true })
 // friends: new Collection<User>(this);

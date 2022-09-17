@@ -9,3 +9,4 @@ export * from './answer.entity';
 export * from './prize.entity';
 export * from './reward.entity';
 export * from './notice.entity';
+export * from './relation.entity';
