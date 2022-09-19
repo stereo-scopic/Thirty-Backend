@@ -13,6 +13,9 @@ import { crypt } from 'src/utils/crypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { wrap } from '@mikro-orm/core';
+import { RewardService } from 'src/reward/reward.service';
+import { BucketsService } from 'src/buckets/buckets.service';
+import { RelationService } from 'src/relation/relation.service';
 
 @Injectable()
 export class UserService {
@@ -21,6 +24,9 @@ export class UserService {
     private readonly userRepository: EntityRepository<User>,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly rewardService: RewardService,
+    private readonly bucketService: BucketsService,
+    private readonly relationService: RelationService
   ) {}
 
   async createUser(uuid: string): Promise<User> {
@@ -51,6 +57,19 @@ export class UserService {
     this.userRepository.flush();
 
     return user;
+  }
+
+  async getUserProfileById(id: string): Promise<any> {
+    const user = await this.getById(id);
+    const rewardCount = await this.rewardService.getRewardCountByUserId(id);
+    const completedChallengeCount = await this.bucketService.getCompletedChallengeBucketCount(user);
+    const relationCount = await this.relationService.getRelationCount(id);
+    return {
+      user: user,
+      rewardCount: rewardCount,
+      completedChallengeCount: completedChallengeCount,
+      relationCount: relationCount
+    }
   }
 
   async deleteUser(uuid: string): Promise<void> {

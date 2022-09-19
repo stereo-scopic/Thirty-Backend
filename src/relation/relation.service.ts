@@ -18,6 +18,13 @@ export class RelationService {
          });
     }
 
+    async getRelationCount(userId: string): Promise<number> {
+        return this.relationRepository.count({
+            subject_user_id: userId,
+            status: RelationStatus.CONFIRMED
+        });
+    }
+
     async deleteRelation(objUser: User, subUserId: string) {
         const objUserRelation = await this.relationRepository.nativeDelete({
             object_user_id: objUser.id,

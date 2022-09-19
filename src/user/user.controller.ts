@@ -36,14 +36,15 @@ export class UserController {
 
   @Get('/profile')
   @ApiOperation({ summary: `프로필 조회` })
+  // TODO: swagger response 수정
   @ApiResponse({
     status: 200,
     type: AuthorizedUserDto,
   })
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
-  async getUserProfile(@Req() req): Promise<User> {
-    return this.userService.getById(req.user.id);
+  async getUserProfile(@Req() req): Promise<any> {
+    return this.userService.getUserProfileById(req.user.id);
   }
 
   @Patch('/profile')
