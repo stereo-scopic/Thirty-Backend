@@ -77,7 +77,7 @@ export class UserService {
     console.log(result);
   }
 
-  async getById(id: string): Promise<any> {
+  async getById(id: string): Promise<User> {
     try {
       return this.userRepository.findOneOrFail({ id: id });
     } catch (error) {
