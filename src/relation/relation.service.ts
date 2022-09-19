@@ -17,4 +17,17 @@ export class RelationService {
             status: RelationStatus.CONFIRMED
          });
     }
+
+    async deleteRelation(objUser: User, subUserId: string) {
+        const objUserRelation = await this.relationRepository.nativeDelete({
+            object_user_id: objUser.id,
+            subject_user_id: subUserId
+        });
+        const subUserRelation = await this.relationRepository.nativeDelete({
+            object_user_id: subUserId,
+            subject_user_id: objUser.id
+        });
+        this.relationRepository.flush();
+        return;
+    }
 }
