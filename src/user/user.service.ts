@@ -25,8 +25,9 @@ export class UserService {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly rewardService: RewardService,
+    @Inject(forwardRef(() => BucketsService))
     private readonly bucketService: BucketsService,
-    private readonly relationService: RelationService
+    private readonly relationService: RelationService,
   ) {}
 
   async createUser(uuid: string): Promise<User> {
@@ -62,14 +63,15 @@ export class UserService {
   async getUserProfileById(id: string): Promise<any> {
     const user = await this.getById(id);
     const rewardCount = await this.rewardService.getRewardCountByUserId(id);
-    const completedChallengeCount = await this.bucketService.getCompletedChallengeBucketCount(user);
+    const completedChallengeCount =
+      await this.bucketService.getCompletedChallengeBucketCount(user);
     const relationCount = await this.relationService.getRelationCount(id);
     return {
       user: user,
       rewardCount: rewardCount,
       completedChallengeCount: completedChallengeCount,
-      relationCount: relationCount
-    }
+      relationCount: relationCount,
+    };
   }
 
   async deleteUser(uuid: string): Promise<void> {

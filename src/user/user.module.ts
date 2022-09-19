@@ -4,17 +4,17 @@ import { User } from 'src/entities';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { AuthModule } from 'src/auth/auth.module';
-import { RewardService } from 'src/reward/reward.service';
-import { BucketsService } from 'src/buckets/buckets.service';
-import { RelationService } from 'src/relation/relation.service';
+import { RewardModule } from 'src/reward/reward.module';
+import { BucketsModule } from 'src/buckets/buckets.module';
+import { RelationModule } from 'src/relation/relation.module';
 
 @Module({
   imports: [
-    forwardRef(() => AuthModule), 
-    RewardService,
-    BucketsService,
-    RelationService,
-    MikroOrmModule.forFeature([User])
+    forwardRef(() => AuthModule),
+    RewardModule,
+    forwardRef(() => BucketsModule),
+    RelationModule,
+    MikroOrmModule.forFeature([User]),
   ],
   exports: [UserService],
   providers: [UserService],

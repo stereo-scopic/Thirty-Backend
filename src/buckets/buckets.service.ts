@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 
@@ -18,6 +23,7 @@ import { RewardService } from 'src/reward/reward.service';
 export class BucketsService {
   constructor(
     private readonly authService: AuthService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly challengeService: ChallengeService,
     private readonly rewardService: RewardService,
@@ -84,7 +90,7 @@ export class BucketsService {
 
   async getCompletedChallengeBucketCount(user: User): Promise<number> {
     return this.bucketRepository.count({
-      user: user
+      user: user,
     });
   }
 

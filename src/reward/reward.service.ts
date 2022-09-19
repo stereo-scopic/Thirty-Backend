@@ -26,7 +26,7 @@ export class RewardService {
 
   async getRewardCountByUserId(userId: string): Promise<number> {
     return this.rewardRepository.count({
-      user_id: userId
+      user_id: userId,
     });
   }
 

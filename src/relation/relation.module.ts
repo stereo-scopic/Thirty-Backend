@@ -6,6 +6,7 @@ import { Relation } from 'src/entities';
 
 @Module({
   imports: [MikroOrmModule.forFeature([Relation])],
+  exports: [RelationService],
   providers: [RelationService],
   controllers: [RelationController],
 })

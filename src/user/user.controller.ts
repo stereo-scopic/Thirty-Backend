@@ -9,7 +9,6 @@ import {
   Body,
   UseInterceptors,
   ClassSerializerInterceptor,
-  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -33,13 +32,13 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: `사용자 검색`} )
+  @ApiOperation({ summary: `사용자 검색` })
   @ApiParam({
     name: `user_id`,
     type: `string`,
     example: `adfa8b368bcd91d3d830`,
     description: `user id`,
-    required: true
+    required: true,
   })
   @ApiOkResponse({ type: User })
   @ApiBadRequestResponse({})
