@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { string } from 'joi';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { Relation } from 'src/entities';
@@ -43,6 +43,19 @@ export class RelationController {
         return this.relationService.deleteRelation(req.user, subUserId);
     }
 
+    @ApiOperation({ summary: `친구 요청`} )
+    @ApiBody({
+        schema: {
+            properties: {
+                subject_user_id: {
+                    type: `string`,
+                    description: `친구 신청할 user id`,
+
+                }
+            }
+        }
+    })
+    @ApiCreatedResponse({ type: Relation })
     @Post('')
     async sendRSVP(
         @Req() req,
