@@ -1,7 +1,8 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
-import { Relation, RelationStatus, User } from 'src/entities';
+import { Relation, User } from 'src/entities';
+import { RelationStatus } from './relation-stautus.enum';
 
 @Injectable()
 export class RelationService {

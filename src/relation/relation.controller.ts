@@ -1,6 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { isArray } from 'class-validator';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { Relation } from 'src/entities';
 import { RelationService } from './relation.service';
