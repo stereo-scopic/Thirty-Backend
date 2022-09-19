@@ -3,6 +3,7 @@ import { RelationStatus } from 'src/relation/relation-stautus.enum';
 
 import { ApiProperty } from '@nestjs/swagger';
 
+// TODO: id 없애고 sub_user_id, obj_user_id로 multiple columns primary key
 @Entity()
 export class Relation {
   @ApiProperty({
