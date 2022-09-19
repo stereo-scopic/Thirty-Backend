@@ -25,6 +25,13 @@ export class RelationService {
         });
     }
 
+    async sendRSVP(objUser: User, subUserId: string): Promise<Relation> {
+        const subRelation = new Relation(objUser.id, subUserId);
+        const objRelelation = new Relation(subUserId, objUser.id);
+        this.relationRepository.persistAndFlush([subRelation, objRelelation]);
+        return subRelation;
+    }
+
     async deleteRelation(objUser: User, subUserId: string) {
         const objUserRelation = await this.relationRepository.nativeDelete({
             object_user_id: objUser.id,

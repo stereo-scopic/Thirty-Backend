@@ -34,4 +34,10 @@ export class Relation {
   })
   @Property({ onCreate: () => new Date() })
   created_at: Date;
+
+  constructor(subUserId: string, objUserId: string) {
+    this.subject_user_id = subUserId;
+    this.object_user_id = objUserId;
+    this.status = RelationStatus.PENDING;
+  }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { string } from 'joi';
 import { JwtAuthGuard } from 'src/auth/guards';
@@ -41,5 +41,13 @@ export class RelationController {
     @Delete('')
     async deleteRelation(@Req() req, @Body('subject_user_id') subUserId: string): Promise<void> {
         return this.relationService.deleteRelation(req.user, subUserId);
+    }
+
+    @Post('')
+    async sendRSVP(
+        @Req() req,
+        @Body('subject_user_id') subUserId: string
+    ): Promise<Relation> {
+        return this.relationService.sendRSVP(req.user, subUserId);
     }
 }
