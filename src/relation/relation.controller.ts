@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { string } from 'joi';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { Relation } from 'src/entities';
+import { RelationStatus } from './relation-stautus.enum';
 import { RelationService } from './relation.service';
 
 @ApiTags('Relation')
@@ -62,5 +63,29 @@ export class RelationController {
         @Body('subject_user_id') subUserId: string
     ): Promise<Relation> {
         return this.relationService.sendRSVP(req.user, subUserId);
+    }
+
+    @ApiOperation({ summary: `친구 요청 응답` })
+    @ApiBody({
+        schema: {
+            properties: {
+                status: {
+                    type: `string`,
+                    enum: ['c', 'd'],
+                    example: 'c',
+                    description: `c: 확인/d:거절`,
+                }
+            }
+        }
+    })
+    @ApiCreatedResponse({ type: Relation })
+    @ApiBadRequestResponse()
+    @Post('/:rsvp_id')
+    async responseRSVP(
+        @Req() req,
+        @Param('rsvp_id') rsvpId: number,
+        @Body('status') status: RelationStatus
+    ): Promise<Relation> {
+        return this.relationService.responseRSVP(req.user, rsvpId, status);
     }
 }

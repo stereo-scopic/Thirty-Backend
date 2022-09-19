@@ -41,11 +41,9 @@ export class UserController {
     description: `user id`,
     required: true
   })
-  @ApiOkResponse({
-    type: User
-  })
+  @ApiOkResponse({ type: User })
   @ApiBadRequestResponse({})
-  @Get('/')
+  @Get('/:user_id')
   async findUser(@Param('user_id') userId: string) {
     return this.userService.getById(userId);
   }

@@ -1,6 +1,6 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Relation, User } from 'src/entities';
 import { RelationStatus } from './relation-stautus.enum';
 
@@ -32,6 +32,16 @@ export class RelationService {
         return subRelation;
     }
 
+    async responseRSVP(userId: string, rsvpId: number, status: RelationStatus): Promise<Relation> {
+        const objRelation = await this.getRelationById(rsvpId);
+        objRelation.status = status;
+        const subRelation = await this.getRelationByUsers(objRelation.object_user_id, objRelation.subject_user_id);
+        subRelation.status = status;
+        this.relationRepository.persistAndFlush([objRelation, subRelation]);
+
+        return objRelation;
+    }
+
     async deleteRelation(objUser: User, subUserId: string) {
         const objUserRelation = await this.relationRepository.nativeDelete({
             object_user_id: objUser.id,
@@ -43,5 +53,20 @@ export class RelationService {
         });
         this.relationRepository.flush();
         return;
+    }
+
+    private async getRelationById(rsvpId: number) {
+        const relation = await this.relationRepository.findOne({ id: rsvpId });
+        if (relation) return relation
+        throw new BadRequestException(`존재하지 않는 친구 신청입니다.`);
+    }
+
+    private async getRelationByUsers(subUserId: string, objUserId: string): Promise<Relation> {
+        const relation = await this.relationRepository.findOne({
+            subject_user_id: subUserId,
+            object_user_id: objUserId
+        })
+        if (relation) return relation
+        throw new BadRequestException(`존재하지 않는 친구 신청입니다.`);
     }
 }

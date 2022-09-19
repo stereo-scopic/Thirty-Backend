@@ -1,10 +1,15 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { ApiProperty } from '@nestjs/swagger';
 import { RelationStatus } from 'src/relation/relation-stautus.enum';
 
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Relation {
+  @ApiProperty({
+    type: `number`,
+    example: 13,
+    description: 'RSVP unique id'
+  })
   @PrimaryKey({ autoincrement: true })
   @Property()
   id: number;
