@@ -96,7 +96,7 @@ export class User {
   signup_at: Date;
 
   @Exclude()
-  @Property()
+  @Property({ default: 0 })
   continuous_attendance: number;
 
   @Exclude()
