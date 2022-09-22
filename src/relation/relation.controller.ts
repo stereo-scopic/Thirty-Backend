@@ -44,7 +44,7 @@ export class RelationController {
   @ApiBody({
     schema: {
       properties: {
-        subject_user_id: {
+        friend: {
           type: `string`,
           example: `adfa8b368bcd91d3d830`,
           description: `끊으려는 친구의 user id`,
@@ -56,16 +56,16 @@ export class RelationController {
   @Delete('')
   async disconnect(
     @Req() req,
-    @Body('subject_user_id') subUserId: string,
+    @Body('friend') objUserId: string,
   ): Promise<void> {
-    return this.relationService.disconnect(req.user, subUserId);
+    return this.relationService.disconnect(req.user, objUserId);
   }
 
   @ApiOperation({ summary: `친구 요청` })
   @ApiBody({
     schema: {
       properties: {
-        subject_user_id: {
+        friend: {
           type: `string`,
           description: `친구 신청할 user id`,
         },
@@ -76,9 +76,9 @@ export class RelationController {
   @Post('')
   async sendRSVP(
     @Req() req,
-    @Body('subject_user_id') subUserId: string,
+    @Body('friend') objUserId: string,
   ): Promise<Relation> {
-    return this.relationService.sendRSVP(req.user, subUserId);
+    return this.relationService.sendRSVP(req.user, objUserId);
   }
 
   @ApiOperation({ summary: `친구 요청 응답` })
@@ -92,7 +92,7 @@ export class RelationController {
   async responseRSVP(
     @Req() req,
     @Body() createResponseRSVPDto: CreateResponseRSVPDto,
-  ): Promise<Relation[]> {
+  ): Promise<void> {
     return this.relationService.responseRSVP(req.user, createResponseRSVPDto);
   }
 }

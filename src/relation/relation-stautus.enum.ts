@@ -1,5 +1,5 @@
 export enum RelationStatus {
-    PENDING = 'p',
-    CONFIRMED = 'c',
-    DENIED = 'd',
-};
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  DENIED = 'denied',
+}

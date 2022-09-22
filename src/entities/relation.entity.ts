@@ -6,16 +6,20 @@ import { ApiProperty } from '@nestjs/swagger';
 @Entity()
 export class Relation {
   @PrimaryKey()
-  @Property({ nullable: false })
-  subject_user_id: string;
+  @Property({
+    nullable: false,
+  })
+  userId: string;
 
   @PrimaryKey()
   @ApiProperty({
     example: 'adfa8b368bcd91d3d830',
     description: `친구 user unique id`,
   })
-  @Property({ nullable: false })
-  object_user_id: string;
+  @Property({
+    nullable: false,
+  })
+  friendId: string;
 
   @ApiProperty({
     example: 'c',
@@ -35,9 +39,9 @@ export class Relation {
 
   [PrimaryKeyType]?: [string, string];
 
-  constructor(subUserId: string, objUserId: string) {
-    this.subject_user_id = subUserId;
-    this.object_user_id = objUserId;
+  constructor(userId: string, friendId: string) {
+    this.userId = userId;
+    this.friendId = friendId;
     this.status = RelationStatus.PENDING;
   }
 }
