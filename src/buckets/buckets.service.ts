@@ -84,6 +84,7 @@ export class BucketsService {
        left  join mission m
          on  m.challenge_id = c.id
         and  m.date = a.date
+        order by a.date;
     `);
     return {
       bucket: bucket,
