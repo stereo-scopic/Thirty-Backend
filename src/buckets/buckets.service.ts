@@ -77,7 +77,7 @@ export class BucketsService {
       select a.*
            , m.detail as mission
        from  answer a
-       left  join bucket b
+      inner  join bucket b
          on  b.id = a.bucket_id
        left  join challenge c
          on  c.id = b.challenge_id
