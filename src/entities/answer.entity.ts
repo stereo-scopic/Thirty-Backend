@@ -1,9 +1,10 @@
-import { Entity, ManyToOne, Property } from '@mikro-orm/core';
+import { Entity, ManyToOne, Property, Unique } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from './BaseEntity';
 import { Bucket } from './buckets.entity';
 
 @Entity()
+@Unique({ properties: [`bucket`, `date`] })
 export class Answer extends BaseEntity {
   @ManyToOne({
     entity: () => Bucket,

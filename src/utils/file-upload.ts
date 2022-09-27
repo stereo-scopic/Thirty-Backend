@@ -2,6 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 
 export async function uploadFileOnAwsS3Bucket(file: any, directory: string) {
+  if (!file) {
+    return;
+  }
+
   AWS.config.update({
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY,
