@@ -59,27 +59,24 @@ export class UserService {
   }
 
   async getById(id: string): Promise<any> {
-    try {
-      return this.userRepository.findOneOrFail({ id: id });
-    } catch (error) {
-      throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
-    }
+      const user = await this.userRepository.findOneOrFail({ id: id });
+      if (!user)
+        throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
+      return user;
   }
 
   async getByUuid(uuid: string): Promise<User> {
-    try {
-      return this.userRepository.findOneOrFail({ uuid: uuid });
-    } catch (error) {
-      throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
-    }
+      const user = await this.userRepository.findOneOrFail({ uuid: uuid });
+      if (!user)
+        throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
+      return user;
   }
 
   async getByEmail(email: string): Promise<User> {
-    try {
-      return this.userRepository.findOneOrFail({ email: email });
-    } catch (error) {
-      throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
-    }
+      const user = await this.userRepository.findOneOrFail({ email: email });
+      if (!user)
+        throw new BadRequestException(`존재하지 않는 사용자 입니다.`);
+      return user;
   }
 
   async update(user: User, updateUserDto: UpdateUserDto): Promise<User> {
