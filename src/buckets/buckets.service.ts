@@ -97,8 +97,17 @@ export class BucketsService {
       bucket: bucket,
       image: imageFileUrl,
     });
-    const answer: Answer = this.answerRepository.create(createAnswerDto);
-    this.answerRepository.persistAndFlush(answer);
+    let answer: Answer;
+    try {
+      answer = this.answerRepository.create(createAnswerDto);
+      await this.answerRepository.persistAndFlush(answer);
+    } catch (error) {
+      // duplicate unique key
+      console.log("error");
+      console.log(error);
+      if (error.code == 23505)
+        throw new BadRequestException(`이미 진행한 챌린지 날짜 입니다.`);
+    }
 
     bucket.count += 1;
     if (bucket.count === 30) {
