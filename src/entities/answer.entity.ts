@@ -1,9 +1,10 @@
-import { Entity, ManyToOne, Property } from '@mikro-orm/core';
+import { Entity, ManyToOne, Property, Unique } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from './BaseEntity';
 import { Bucket } from './buckets.entity';
 
 @Entity()
+@Unique({ properties: [`bucket`, `date`] })
 export class Answer extends BaseEntity {
   @ManyToOne({
     entity: () => Bucket,
@@ -54,4 +55,11 @@ export class Answer extends BaseEntity {
   })
   @Property({ nullable: false })
   stamp: number;
+
+  @ApiProperty({
+    example: `챌린지를 시작해보자! "시작이 반이다"`,
+    type: `string`,
+    description: `미션 타이틀`,
+  })
+  mission: string;
 }

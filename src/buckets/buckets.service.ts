@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository } from '@mikro-orm/postgresql';
+import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 
 import { AuthService } from 'src/auth/auth.service';
 import { ChallengeService } from 'src/challenge/challenge.service';
@@ -26,7 +26,7 @@ export class BucketsService {
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly challengeService: ChallengeService,
-    private readonly rewardService: RewardService,
+    private readonly em: EntityManager,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
@@ -77,11 +77,21 @@ export class BucketsService {
     });
   }
 
-  async getBucketAndAnswersById(bucketId: string): Promise<BucketsDetail> {
+  async getBucketAndAnswersById(bucketId: string): Promise<any> {
     const bucket: Bucket = await this.getBucketById(bucketId);
-    const answers: Answer[] = await this.answerRepository.find({
-      bucket: { id: bucketId },
-    });
+    const answers = await this.em.execute(`
+      select a.*
+           , m.detail as mission
+       from  answer a
+      inner  join bucket b
+         on  b.id = a.bucket_id
+       left  join challenge c
+         on  c.id = b.challenge_id
+       left  join mission m
+         on  m.challenge_id = c.id
+        and  m.date = a.date
+        order by a.date;
+    `);
     return {
       bucket: bucket,
       answers: answers,
@@ -109,8 +119,17 @@ export class BucketsService {
       bucket: bucket,
       image: imageFileUrl,
     });
-    const answer: Answer = this.answerRepository.create(createAnswerDto);
-    this.answerRepository.persistAndFlush(answer);
+    let answer: Answer;
+    try {
+      answer = this.answerRepository.create(createAnswerDto);
+      await this.answerRepository.persistAndFlush(answer);
+    } catch (error) {
+      // duplicate unique key
+      console.log("error");
+      console.log(error);
+      if (error.code == 23505)
+        throw new BadRequestException(`이미 진행한 챌린지 날짜 입니다.`);
+    }
 
     bucket.count += 1;
     if (bucket.count === 30) {
