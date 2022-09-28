@@ -1,8 +1,9 @@
-import { NotificationType } from "src/entities";
+import { NotificationType } from '../notification-type.enum';
 
 export class CreateNotificationDto {
-    user_id: string;
-    relation_user_id: string;
-    type: NotificationType;
-    object_id?: string;
+  user_id: string;
+  relation_user_id: string;
+  type: NotificationType;
+  // messagge: NotificationMessage;
+  object_id?: string;
 }

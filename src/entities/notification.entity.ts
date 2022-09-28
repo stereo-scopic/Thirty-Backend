@@ -1,21 +1,46 @@
-import { Entity, Property } from "@mikro-orm/core";
-import { NotificationType } from "src/notification/notification-type.enum";
-import { BaseEntity } from "./BaseEntity";
+import { Entity, Property } from '@mikro-orm/core';
+import { ApiProperty } from '@nestjs/swagger';
+import { NotificationType } from 'src/notification/notification-type.enum';
+import { BaseEntity } from './BaseEntity';
 
 @Entity()
 export class Notification extends BaseEntity {
-    @Property()
-    user_id: string;
+  @ApiProperty({
+    example: `adfa8b368bcd91d3d830`,
+    description: `user unique id`,
+    type: 'string',
+  })
+  @Property({ hidden: true })
+  user_id: string;
 
-    @Property({ nullable: true })
-    relation_user_id: string;
+  @ApiProperty({
+    example: `abcdefgt1234`,
+    description: `관련 user unique id`,
+    type: 'string',
+  })
+  @Property({ nullable: true })
+  related_user_id: string;
 
-    @Property()
-    type: NotificationType;
+  @ApiProperty({
+    type: `string`,
+    enum: NotificationType,
+    description: `알림 종류\n`,
+  })
+  @Property()
+  type: NotificationType;
 
-    @Property({ nullable: true })
-    object_id: string;
+  @ApiProperty({
+    type: `string`,
+    description: ``,
+  })
+  @Property({ nullable: true })
+  message: string;
 
-    @Property({ default: false })
-    is_read: boolean;
+  @ApiProperty({
+    type: `boolean`,
+    example: false,
+    description: ``,
+  })
+  @Property({ default: false })
+  is_read: boolean;
 }

@@ -6,7 +6,8 @@ import { Notification } from 'src/entities';
 
 @Module({
   imports: [MikroOrmModule.forFeature([Notification])],
+  exports: [NotificationService],
   providers: [NotificationService],
-  controllers: [NotificationController]
+  controllers: [NotificationController],
 })
 export class NotificationModule {}
