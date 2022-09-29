@@ -10,7 +10,7 @@ export class Notification extends BaseEntity {
     description: `user unique id`,
     type: 'string',
   })
-  @Property({ hidden: true })
+  @Property()
   user_id: string;
 
   @ApiProperty({
@@ -35,6 +35,12 @@ export class Notification extends BaseEntity {
   })
   @Property({ nullable: true })
   message: string;
+
+  @Property({ nullable: true })
+  related_source_name: string;
+
+  @Property({ nullable: true })
+  related_source_id: string | number;
 
   @ApiProperty({
     type: `boolean`,

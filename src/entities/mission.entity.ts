@@ -1,7 +1,8 @@
-import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import { Collection, Entity, ManyToMany, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
 import { Challenge } from './challenges.entity';
 
 import { ApiProperty } from '@nestjs/swagger';
+import { Answer } from './answer.entity';
 
 @Entity()
 export class Mission {
@@ -26,6 +27,13 @@ export class Mission {
   })
   @Property()
   detail: string;
+
+  @ManyToMany({
+    entity: () => Answer,
+    joinColumns: ['challenge', 'date'],
+    referencedColumnNames: ['bucket.challenge', 'date']
+  })
+  answer: Collection<Answer>;
 
   constructor(date: number, detail: string) {
     this.date = date;

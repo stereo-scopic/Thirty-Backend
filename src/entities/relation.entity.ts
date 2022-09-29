@@ -9,7 +9,7 @@ export class Relation {
   @Property({
     nullable: false,
   })
-  subjectUserId: string;
+  userId: string;
 
   @PrimaryKey()
   @ApiProperty({
@@ -19,11 +19,11 @@ export class Relation {
   @Property({
     nullable: false,
   })
-  objectUserId: string;
+  friendId: string;
 
   @ApiProperty({
     example: 'confirmed',
-    description: `친구 관계 상태 c:친구맺기완료/p:대기중/d:거절`,
+    description: `친구 관계 상태`,
     enum: RelationStatus,
   })
   @Property({ nullable: false, default: RelationStatus.PENDING })
@@ -39,9 +39,9 @@ export class Relation {
 
   [PrimaryKeyType]?: [string, string];
 
-  constructor(subjectUserId: string, objectUserId: string) {
-    this.subjectUserId = subjectUserId;
-    this.objectUserId = objectUserId;
+  constructor(userId: string, friendId: string) {
+    this.userId = userId;
+    this.friendId = friendId;
     this.status = RelationStatus.PENDING;
   }
 }
