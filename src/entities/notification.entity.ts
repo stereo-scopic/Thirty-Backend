@@ -1,5 +1,6 @@
 import { Entity, Property } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateNotificationDto } from 'src/notification/dto/create-notification.dto';
 import { NotificationType } from 'src/notification/notification-type.enum';
 import { BaseEntity } from './BaseEntity';
 
@@ -50,14 +51,10 @@ export class Notification extends BaseEntity {
   @Property({ default: false })
   is_read: boolean;
 
-  constructor(
-    userId: string,
-    type: NotificationType,
-    relatedUserId?: string,
-    sourceName?: string,
-    sourceId?: string,
-  ) {
+  constructor(createNotificationDto: CreateNotificationDto) {
     super();
+    const { userId, type, relatedUserId, sourceName, sourceId } =
+      createNotificationDto;
     this.user_id = userId;
     this.type = type;
     this.message = this.getNotificationMessage(type, relatedUserId);

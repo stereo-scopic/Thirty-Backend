@@ -1,9 +1,8 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Relation, User } from 'src/entities';
-import { CreateNotificationDto } from 'src/notification/dto/create-notification.dto';
-import { NotificationType, getNotificationMessage } from 'src/notification/notification-type.enum';
+import { Relation, User, Notification } from 'src/entities';
+import { NotificationType } from 'src/notification/notification-type.enum';
 import { NotificationService } from 'src/notification/notification.service';
 import { CreateResponseRSVPDto } from './dto/create-resopnse-rsvp.dto';
 import { RelationStatus } from './relation-stautus.enum';
@@ -13,7 +12,7 @@ export class RelationService {
   constructor(
     @InjectRepository(Relation)
     private readonly relationRepository: EntityRepository<Relation>,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
   ) {}
 
   async getRelationList(user: User): Promise<Relation[]> {
@@ -40,7 +39,11 @@ export class RelationService {
     ]);
 
     // Send Notification To Future Friend
-    const createNotificationDto = new CreateNotificationDto(friendId, NotificationType.RELATION_RSVP, userId);
+    const createNotificationDto = new Notification({
+      userId: friendId,
+      type: NotificationType.RELATION_RSVP,
+      relatedUserId: userId,
+    });
     this.notificationService.createNotification(createNotificationDto);
 
     return userOwnedRelation;

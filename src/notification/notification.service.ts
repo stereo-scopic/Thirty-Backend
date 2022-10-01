@@ -17,9 +17,7 @@ export class NotificationService {
     private readonly notificationRepository: EntityRepository<Notification>,
   ) {}
 
-  async createNotification(createNotificationDto: CreateNotificationDto): Promise<Notification> {
-    console.log('createNotificationDto', createNotificationDto);
-    const notification = this.notificationRepository.create(createNotificationDto);
+  async createNotification(notification: Notification): Promise<Notification> {
     this.notificationRepository.persistAndFlush(notification);
     return notification;
   }
