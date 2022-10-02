@@ -15,8 +15,8 @@ export class Notification extends BaseEntity {
     description: `user unique id`,
     type: 'string',
   })
-  @Property({ hidden: true })
-  user_id: string;
+  @Property({ hidden: true, fieldName: `user_id` })
+  userId: string;
 
   @ApiProperty({
     example: `abcdefgt1234`,
@@ -24,7 +24,7 @@ export class Notification extends BaseEntity {
     type: 'string',
   })
   @Property({ nullable: true })
-  related_user_id: string;
+  relatedUserId: string;
 
   @ApiProperty({
     type: `string`,
@@ -42,10 +42,10 @@ export class Notification extends BaseEntity {
   message: string;
 
   @Property({ nullable: true })
-  related_source_name: string;
+  relatedSourceName: string;
 
   @Property({ nullable: true })
-  related_source_id: string | number;
+  relatedSourceId: string | number;
 
   @ApiProperty({
     type: `boolean`,
@@ -59,29 +59,34 @@ export class Notification extends BaseEntity {
     super();
     const { user, type, relatedUser, sourceName, sourceId } =
       createNotificationDto;
-    this.user_id = user.id;
+    this.userId = user.id;
     this.type = type;
     this.message = this.getNotificationMessage(type, relatedUser.nickname);
 
     if (relatedUser) {
-      this.related_user_id = relatedUser.id;
+      this.relatedUserId = relatedUser.id;
     }
     if (sourceName && sourceId) {
-      this.related_source_name = sourceName;
-      this.related_source_id = sourceId;
+      this.relatedSourceName = sourceName;
+      this.relatedSourceId = sourceId;
     }
   }
 
   setNotificationMessage(
     notiType: NotificationType,
-    relatedUserNickeName?: string,
+    relatedUserNickname: string,
+    challengeName?: string,
   ) {
-    this.message = this.getNotificationMessage(notiType, relatedUserNickeName);
+    this.message = this.getNotificationMessage(
+      notiType,
+      relatedUserNickname,
+      challengeName,
+    );
   }
 
   private getNotificationMessage(
     notiType: NotificationType,
-    relatedUserNickname?: string,
+    relatedUserNickname: string,
     relatedUserChallangeName?: string,
   ) {
     return {
