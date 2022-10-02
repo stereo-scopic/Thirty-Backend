@@ -34,7 +34,6 @@ export class UserController {
 
   @Get('/profile')
   @ApiOperation({ summary: `프로필 조회` })
-  // TODO: swagger response 수정
   @ApiResponse({
     status: 200,
     type: AuthorizedUserDto,
@@ -42,8 +41,6 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
   async getUserProfile(@Req() req): Promise<any> {
-    console.log('req.user.id :', req.user.id);
-
     return this.userService.getUserProfileById(req.user.id);
   }
 
