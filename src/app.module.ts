@@ -16,6 +16,7 @@ import { RewardModule } from './reward/reward.module';
 import { NoticeService } from './notice/notice.service';
 import { NoticeModule } from './notice/notice.module';
 import { RelationModule } from './relation/relation.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RelationModule } from './relation/relation.module';
     RewardModule,
     NoticeModule,
     RelationModule,
+    NotificationModule,
   ],
 })
 export class AppModule implements NestModule, OnModuleInit {

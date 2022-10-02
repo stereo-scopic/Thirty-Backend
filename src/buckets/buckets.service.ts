@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 
@@ -18,6 +23,7 @@ import { RewardService } from 'src/reward/reward.service';
 export class BucketsService {
   constructor(
     private readonly authService: AuthService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly challengeService: ChallengeService,
     private readonly em: EntityManager,
@@ -92,6 +98,12 @@ export class BucketsService {
     };
   }
 
+  async getCompletedChallengeBucketCount(user: User): Promise<number> {
+    return this.bucketRepository.count({
+      user: user,
+    });
+  }
+
   async createAnswer(
     user: User,
     bucketId: string,
@@ -113,8 +125,6 @@ export class BucketsService {
       await this.answerRepository.persistAndFlush(answer);
     } catch (error) {
       // duplicate unique key
-      console.log("error");
-      console.log(error);
       if (error.code == 23505)
         throw new BadRequestException(`이미 진행한 챌린지 날짜 입니다.`);
     }
