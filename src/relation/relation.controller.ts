@@ -87,7 +87,26 @@ export class RelationController {
     type: Relation,
     isArray: true,
   })
-  @ApiBadRequestResponse()
+  @ApiBadRequestResponse({
+    schema: {
+      oneOf: [
+        {
+          example: {
+            statusCode: 400,
+            message: `존재하지 않는 친구신청 입니다.`,
+            error: `Bad Request`,
+          },
+        },
+        {
+          example: {
+            statusCode: 400,
+            message: `대기 상태(PENDING)로는 수정 불가능합니다.`,
+            error: `Bad Request`,
+          },
+        },
+      ],
+    },
+  })
   @Post('/RSVP')
   async responseRSVP(
     @Req() req,

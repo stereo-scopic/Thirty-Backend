@@ -1,7 +1,7 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Relation, User, Notification } from 'src/entities';
+import { Relation, User } from 'src/entities';
 import { NotificationTypeCode } from 'src/notification/notification-type.enum';
 import { NotificationService } from 'src/notification/notification.service';
 import { CreateResponseRSVPDto } from './dto/create-resopnse-rsvp.dto';
@@ -65,69 +65,72 @@ export class RelationService {
     createResponseRSVPDto: CreateResponseRSVPDto,
   ): Promise<void> {
     const { friendId, status } = createResponseRSVPDto;
-
-    const usersComb = [
-      { subject: userId, object: friendId },
-      { subject: friendId, object: userId },
-    ];
-    usersComb.forEach(async (users) => {
-      const relation = await this.getRelationByUsers(
-        users.subject,
-        users.object,
+    if (status === RelationStatus.PENDING) {
+      throw new BadRequestException(
+        `대기 상태(PENDING)로는 수정 불가능합니다.`,
       );
-      relation.status = status;
-      this.relationRepository.persist(relation);
-    });
-    await this.relationRepository.flush();
+    }
+
+    const relationOfUser = await this.getByUserIdAndFriendId(userId, friendId);
+    const relationOfFriend = await this.getByUserIdAndFriendId(
+      friendId,
+      userId,
+    );
+    relationOfUser.status = status;
+    relationOfFriend.status = status;
 
     // Send Notification
     if (status === RelationStatus.CONFIRMED) {
       // Change My Notification To Relation_Confirmend
-      this.notificationService.updateNotification(
-        userId,
-        friendId,
-        NotificationTypeCode.RELATION_RSVP_CONFIRMED,
-      );
+      try {
+        await this.notificationService.updateNotification(
+          userId,
+          friendId,
+          NotificationTypeCode.RELATION_RSVP_CONFIRMED,
+        );
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
       // Send Relation_RSVP_Confirmed to Friend Notification
-      this.notificationService.createNotification({
+      await this.notificationService.createNotification({
         user: friendId,
         relatedUser: userId,
         type: NotificationTypeCode.RELATION_CONFIRMED,
       });
     } else {
-      this.notificationService.updateNotification(
-        userId,
-        friendId,
-        NotificationTypeCode.RELATION_RSVP_DENIED,
-      );
+      try {
+        await this.notificationService.updateNotification(
+          userId,
+          friendId,
+          NotificationTypeCode.RELATION_RSVP_DENIED,
+        );
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
     }
-  }
 
-  async disconnect(userId: string, friendId: string): Promise<void> {
-    const usersComb = [
-      { subject: userId, object: friendId },
-      { subject: friendId, object: userId },
-    ];
-    usersComb.forEach(async (users) => {
-      const relation = await this.getRelationByUsers(
-        users.subject,
-        users.object,
-      );
-      this.relationRepository.remove(relation);
-    });
     await this.relationRepository.flush();
   }
 
-  private async getRelationByUsers(
+  async disconnect(userId: string, friendId: string): Promise<void> {
+    this.relationRepository.remove(
+      await this.getByUserIdAndFriendId(userId, friendId),
+    );
+    this.relationRepository.remove(
+      await this.getByUserIdAndFriendId(friendId, userId),
+    );
+    await this.relationRepository.flush();
+  }
+
+  async getByUserIdAndFriendId(
     userId: string,
     friendId: string,
   ): Promise<Relation> {
     const relation = await this.relationRepository.findOne({
       userId: userId,
       friendId: friendId,
-      status: RelationStatus.PENDING,
     });
     if (relation) return relation;
-    throw new BadRequestException(`존재하지 않는 친구 신청입니다.`);
+    throw new BadRequestException(`존재하지 않는 친구신청 입니다.`);
   }
 }
