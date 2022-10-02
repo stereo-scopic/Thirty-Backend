@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -18,6 +19,7 @@ import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
 import { RewardService } from 'src/reward/reward.service';
+import { UpdateAnswerDto } from './dto/update-answer.dto';
 
 @Injectable()
 export class BucketsService {
@@ -80,17 +82,26 @@ export class BucketsService {
   async getBucketAndAnswersById(bucketId: string): Promise<any> {
     const bucket: Bucket = await this.getBucketById(bucketId);
     const answers = await this.em.execute(`
-      select a.*
-           , m.detail as mission
-       from  answer a
-      inner  join bucket b
-         on  b.id = a.bucket_id
-       left  join challenge c
-         on  c.id = b.challenge_id
-       left  join mission m
-         on  m.challenge_id = c.id
-        and  m.date = a.date
-        order by a.date;
+    select m."date"
+         , m.detail as mission
+         , a.id as answerId
+         , a.music
+         , a.detail
+         , a.image
+         , a.stamp
+         , a.created_at
+         , a.updated_at
+     from mission m
+     left join challenge c
+       on c.id = m.challenge_id
+     left join bucket b
+       on b.challenge_id = c.id 
+     left join answer a 
+       on a.bucket_id = b.id
+      and a."date" = m."date"
+    where 1=1
+      and b.id = '${bucketId}'
+    order by a."date";
     `);
     return {
       bucket: bucket,
@@ -108,19 +119,16 @@ export class BucketsService {
     user: User,
     bucketId: string,
     createAnswerDto: CreateAnswerDto,
-    imageFileUrl?: string,
   ): Promise<any> {
     const bucket: Bucket = await this.getBucketById(bucketId);
+    this.checkPermission(bucket, user);
     if (!bucket.isBucketWorkedOn()) {
       throw new BadRequestException(`종료된 챌린지 입니다.`);
     }
 
-    Object.assign(createAnswerDto, {
-      bucket: bucket,
-      image: imageFileUrl,
-    });
     let answer: Answer;
     try {
+      createAnswerDto.bucket = bucket;
       answer = this.answerRepository.create(createAnswerDto);
       await this.answerRepository.persistAndFlush(answer);
     } catch (error) {
@@ -154,6 +162,25 @@ export class BucketsService {
       bucket: { id: bucketId },
       date: date,
     });
+  }
+
+  async updateAnswer(
+    user: User,
+    bucketId: string,
+    date: number,
+    updateAnswerDto: UpdateAnswerDto,
+  ) {
+    const bucket = await this.getBucketById(bucketId);
+    this.checkPermission(bucket, user);
+
+    this.answerRepository.nativeUpdate(
+      {
+        bucket: bucket,
+        date: date,
+      },
+      updateAnswerDto,
+    );
+    this.answerRepository.flush();
   }
 
   async updateBucketStatus(
@@ -192,5 +219,11 @@ export class BucketsService {
       return true;
     }
     return false;
+  }
+
+  checkPermission(bucket: Bucket, user: User): void {
+    if (bucket.user.id !== user.id) {
+      throw new ForbiddenException(`챌린지 버킷 주인만 등록, 수정 가능합니다.`);
+    }
   }
 }
