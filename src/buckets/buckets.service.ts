@@ -80,17 +80,26 @@ export class BucketsService {
   async getBucketAndAnswersById(bucketId: string): Promise<any> {
     const bucket: Bucket = await this.getBucketById(bucketId);
     const answers = await this.em.execute(`
-      select a.*
-           , m.detail as mission
-       from  answer a
-      inner  join bucket b
-         on  b.id = a.bucket_id
-       left  join challenge c
-         on  c.id = b.challenge_id
-       left  join mission m
-         on  m.challenge_id = c.id
-        and  m.date = a.date
-        order by a.date;
+    select m."date"
+         , m.detail as mission
+         , a.id as answerId
+         , a.music
+         , a.detail
+         , a.image
+         , a.stamp
+         , a.created_at
+         , a.updated_at
+     from mission m
+     left join challenge c
+       on c.id = m.challenge_id
+     left join bucket b
+       on b.challenge_id = c.id 
+     left join answer a 
+       on a.bucket_id = b.id
+      and a."date" = m."date"
+    where 1=1
+      and b.id = '${bucketId}'
+    order by a."date";
     `);
     return {
       bucket: bucket,
