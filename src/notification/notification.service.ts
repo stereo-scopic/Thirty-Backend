@@ -9,6 +9,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Notification, User } from 'src/entities';
+import { RelationStatus } from 'src/relation/relation-stautus.enum';
 import { UserService } from 'src/user/user.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import {
@@ -40,7 +41,7 @@ export class NotificationService {
 
   async getNotificationList(user: User): Promise<Notification[]> {
     return this.notificationRepository.find(
-      { user_id: user.id },
+      { userId: user.id },
       { orderBy: { created_at: QueryOrder.ASC } },
     );
   }
@@ -52,16 +53,18 @@ export class NotificationService {
   ) {
     const notification: Notification =
       await this.notificationRepository.findOne({
-        user_id: userId,
-        related_user_id: friendId,
+        userId: userId,
+        relatedUserId: friendId,
         type: NotificationTypeCode.RELATION_RSVP,
       });
     if (!notification) {
       throw new BadRequestException(`존재하지 않는 친구신청 입니다.`);
     }
 
-    const relatedUser: User = await this.userService.getById(friendId);
-    notification.setNotificationMessage(type, relatedUser.nickname);
+    notification.setNotificationMessage(
+      type,
+      (await this.userService.getById(friendId)).nickname,
+    );
     notification.type = type;
     await this.notificationRepository.persistAndFlush(notification);
   }
@@ -77,6 +80,34 @@ export class NotificationService {
 
     notification.is_read = true;
     this.notificationRepository.persist(notification);
+  }
+
+  async saveNotificationAboutRSVP(
+    userId: string,
+    friendId: string,
+    status: RelationStatus,
+  ) {
+    if (status === RelationStatus.CONFIRMED) {
+      // Change My Notification To Relation_Confirmend
+      await this.updateNotification(
+        userId,
+        friendId,
+        NotificationTypeCode.RELATION_RSVP_CONFIRMED,
+      );
+      // Send Relation_RSVP_Confirmed to Friend Notification
+      await this.createNotification({
+        user: friendId,
+        relatedUser: userId,
+        type: NotificationTypeCode.RELATION_CONFIRMED,
+      });
+    } else {
+      // Change My Notification To Relation_Denied
+      await this.updateNotification(
+        userId,
+        friendId,
+        NotificationTypeCode.RELATION_RSVP_DENIED,
+      );
+    }
   }
 
   private async getNotificationById(
@@ -95,7 +126,7 @@ export class NotificationService {
     user: User,
     notification: Notification,
   ): Promise<boolean> {
-    if (user.id === notification.user_id) {
+    if (user.id === notification.userId) {
       return true;
     }
     return false;

@@ -46,7 +46,9 @@ export class RelationService {
     } catch (error) {
       // duplicate unique key
       if (error.code == 23505) {
-        throw new BadRequestException(`이미 친구 관계입니다.`);
+        throw new BadRequestException(
+          `이미 친구 신청을 보냈거나 친구 관계 입니다.`,
+        );
       }
     }
 
@@ -79,36 +81,11 @@ export class RelationService {
     relationOfUser.status = status;
     relationOfFriend.status = status;
 
-    // Send Notification
-    if (status === RelationStatus.CONFIRMED) {
-      // Change My Notification To Relation_Confirmend
-      try {
-        await this.notificationService.updateNotification(
-          userId,
-          friendId,
-          NotificationTypeCode.RELATION_RSVP_CONFIRMED,
-        );
-      } catch (error) {
-        throw new BadRequestException(error.message);
-      }
-      // Send Relation_RSVP_Confirmed to Friend Notification
-      await this.notificationService.createNotification({
-        user: friendId,
-        relatedUser: userId,
-        type: NotificationTypeCode.RELATION_CONFIRMED,
-      });
-    } else {
-      try {
-        await this.notificationService.updateNotification(
-          userId,
-          friendId,
-          NotificationTypeCode.RELATION_RSVP_DENIED,
-        );
-      } catch (error) {
-        throw new BadRequestException(error.message);
-      }
-    }
-
+    await this.notificationService.saveNotificationAboutRSVP(
+      userId,
+      friendId,
+      status,
+    );
     await this.relationRepository.flush();
   }
 
