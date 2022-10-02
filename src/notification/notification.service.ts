@@ -4,20 +4,36 @@ import { EntityRepository } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { Notification, User } from 'src/entities';
+import { UserService } from 'src/user/user.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { NotificationType } from './notification-type.enum';
+import {
+  NotificationType,
+  NotificationTypeCode,
+} from './notification-type.enum';
 
 @Injectable()
 export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: EntityRepository<Notification>,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
-  async createNotification(notification: Notification): Promise<Notification> {
+  async createNotification(
+    createNotificationDto: CreateNotificationDto<string>,
+  ): Promise<Notification> {
+    const { user, relatedUser, ...notificationInfo } = createNotificationDto;
+    const notification = new Notification({
+      user: await this.userService.getById(user),
+      relatedUser: await this.userService.getById(relatedUser),
+      ...notificationInfo,
+    });
     this.notificationRepository.persistAndFlush(notification);
     return notification;
   }
@@ -27,6 +43,22 @@ export class NotificationService {
       { user_id: user.id },
       { orderBy: { created_at: QueryOrder.ASC } },
     );
+  }
+
+  async updateNotification(
+    userId: string,
+    friendId: string,
+    type: NotificationType,
+  ) {
+    const notification = await this.notificationRepository.findOne({
+      user_id: userId,
+      related_user_id: friendId,
+      type: NotificationTypeCode.RELATION_RSVP,
+    });
+    const relatedUser: User = await this.userService.getById(friendId);
+    notification.type = type;
+    notification.setNotificationMessage(type, relatedUser.nickname);
+    await this.notificationRepository.persistAndFlush(notification);
   }
 
   async checkReadNotification(
