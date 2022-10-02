@@ -50,14 +50,19 @@ export class NotificationService {
     friendId: string,
     type: NotificationType,
   ) {
-    const notification = await this.notificationRepository.findOne({
-      user_id: userId,
-      related_user_id: friendId,
-      type: NotificationTypeCode.RELATION_RSVP,
-    });
+    const notification: Notification =
+      await this.notificationRepository.findOne({
+        user_id: userId,
+        related_user_id: friendId,
+        type: NotificationTypeCode.RELATION_RSVP,
+      });
+    if (!notification) {
+      throw new BadRequestException(`존재하지 않는 친구신청 입니다.`);
+    }
+
     const relatedUser: User = await this.userService.getById(friendId);
-    notification.type = type;
     notification.setNotificationMessage(type, relatedUser.nickname);
+    notification.type = type;
     await this.notificationRepository.persistAndFlush(notification);
   }
 
