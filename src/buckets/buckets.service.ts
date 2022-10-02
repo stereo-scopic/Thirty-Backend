@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -18,6 +19,7 @@ import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
 import { RewardService } from 'src/reward/reward.service';
+import { UpdateAnswerDto } from './dto/update-answer.dto';
 
 @Injectable()
 export class BucketsService {
@@ -117,19 +119,16 @@ export class BucketsService {
     user: User,
     bucketId: string,
     createAnswerDto: CreateAnswerDto,
-    imageFileUrl?: string,
   ): Promise<any> {
     const bucket: Bucket = await this.getBucketById(bucketId);
+    this.checkPermission(bucket, user);
     if (!bucket.isBucketWorkedOn()) {
       throw new BadRequestException(`종료된 챌린지 입니다.`);
     }
 
-    Object.assign(createAnswerDto, {
-      bucket: bucket,
-      image: imageFileUrl,
-    });
     let answer: Answer;
     try {
+      createAnswerDto.bucket = bucket;
       answer = this.answerRepository.create(createAnswerDto);
       await this.answerRepository.persistAndFlush(answer);
     } catch (error) {
@@ -163,6 +162,25 @@ export class BucketsService {
       bucket: { id: bucketId },
       date: date,
     });
+  }
+
+  async updateAnswer(
+    user: User,
+    bucketId: string,
+    date: number,
+    updateAnswerDto: UpdateAnswerDto,
+  ) {
+    const bucket = await this.getBucketById(bucketId);
+    this.checkPermission(bucket, user);
+
+    this.answerRepository.nativeUpdate(
+      {
+        bucket: bucket,
+        date: date,
+      },
+      updateAnswerDto,
+    );
+    this.answerRepository.flush();
   }
 
   async updateBucketStatus(
@@ -201,5 +219,11 @@ export class BucketsService {
       return true;
     }
     return false;
+  }
+
+  checkPermission(bucket: Bucket, user: User): void {
+    if (bucket.user.id !== user.id) {
+      throw new ForbiddenException(`챌린지 버킷 주인만 등록, 수정 가능합니다.`);
+    }
   }
 }
