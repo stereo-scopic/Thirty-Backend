@@ -73,6 +73,19 @@ export class RelationController {
     },
   })
   @ApiCreatedResponse({ type: Relation })
+  @ApiBadRequestResponse({
+    schema: {
+      oneOf: [
+        {
+          example: {
+            status: 400,
+            message: `이미 친구 신청을 보냈거나 친구 관계 입니다.`,
+            error: `Bad Request`,
+          },
+        },
+      ],
+    },
+  })
   @Post('')
   async sendRSVP(
     @Req() req,
