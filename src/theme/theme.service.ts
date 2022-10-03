@@ -1,6 +1,6 @@
 import { QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository } from '@mikro-orm/postgresql';
+import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { BucketStatus } from 'src/buckets/bucket-status.enum';
 import { BucketsService } from 'src/buckets/buckets.service';
@@ -9,6 +9,7 @@ import { BucketTheme, ExportLog, User } from 'src/entities';
 @Injectable()
 export class ThemeService {
   constructor(
+    private readonly em: EntityManager,
     private readonly bucketService: BucketsService,
     @InjectRepository(ExportLog)
     private readonly logRepository: EntityRepository<ExportLog>,
@@ -37,8 +38,21 @@ export class ThemeService {
     await this.logRepository.persistAndFlush(log);
   }
 
-  async getThemeList(): Promise<BucketTheme[]> {
-    return this.themeRepository.findAll({
+  async getThemeThumbnailList() {
+    return this.themeRepository.find(
+      { isThumbnail: true },
+      {
+        fields: [`name`, `frame`, `isThumbnail`],
+        orderBy: {
+          created_at: QueryOrder.DESC,
+        },
+      },
+    );
+  }
+
+  async getThemeList(name?: string): Promise<BucketTheme[]> {
+    const whereCondition: object = name ? { name: name } : {};
+    return this.themeRepository.find(whereCondition, {
       orderBy: {
         id: QueryOrder.ASC,
       },

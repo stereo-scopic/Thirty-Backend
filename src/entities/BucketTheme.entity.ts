@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from './BaseEntity';
 
 @Entity()
+@Unique({ properties: [`name`, `color`] })
 export class BucketTheme extends BaseEntity {
   @ApiProperty({
     example: `키치`,
@@ -14,11 +15,22 @@ export class BucketTheme extends BaseEntity {
     nullable: false,
     length: 10,
   })
-  @Unique()
   name: string;
 
   @ApiProperty({
-    example: `심플한 테마`,
+    example: `#FFFFFF`,
+    description: `색 정보`,
+    maxLength: 15,
+    uniqueItems: true,
+  })
+  @Property({
+    nullable: false,
+    length: 15,
+  })
+  color: string;
+
+  @ApiProperty({
+    example: `다이어리 꾸미기 느낌의 키치 테마`,
     description: `테마 설명`,
     maxLength: 20,
     nullable: true,
@@ -38,4 +50,10 @@ export class BucketTheme extends BaseEntity {
     nullable: true,
   })
   frame: string;
+
+  @Property({
+    hidden: true,
+    default: false,
+  })
+  isThumbnail: boolean;
 }

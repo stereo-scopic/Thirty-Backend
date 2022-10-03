@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards';
@@ -18,12 +27,52 @@ export class ThemeController {
 
   @Get('')
   @ApiOperation({ summary: `내보내기 테마 리스트 조회` })
+  @ApiQuery({
+    schema: {
+      properties: {
+        name: {
+          type: `string`,
+          nullable: true,
+          example: `키치`,
+        },
+      },
+    },
+  })
   @ApiOkResponse({
     type: BucketTheme,
     isArray: true,
   })
-  async getThemeList(): Promise<BucketTheme[]> {
-    return this.themeService.getThemeList();
+  async getThemeList(@Query('name') name: string): Promise<BucketTheme[]> {
+    return this.themeService.getThemeList(name);
+  }
+
+  @Get('/thumbnail')
+  @ApiOperation({ summary: `테마 이름, 대표 프레임 url 목록` })
+  @ApiOkResponse({
+    schema: {
+      items: {
+        properties: {
+          id: {
+            type: `number`,
+            example: 1,
+            description: `unique id`,
+          },
+          name: {
+            type: `string`,
+            example: `키치`,
+            description: `테마 이름`,
+          },
+          frame: {
+            type: `string`,
+            example: `https://aws.s3.com/themeimage.png`,
+            description: `프레임 이미지 url`,
+          },
+        },
+      },
+    },
+  })
+  async getThemeThumbnailList() {
+    return this.themeService.getThemeThumbnailList();
   }
 
   @Post('/export')
