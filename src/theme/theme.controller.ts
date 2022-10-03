@@ -28,15 +28,11 @@ export class ThemeController {
   @Get('')
   @ApiOperation({ summary: `내보내기 테마 리스트 조회` })
   @ApiQuery({
-    schema: {
-      properties: {
-        name: {
-          type: `string`,
-          nullable: true,
-          example: `키치`,
-        },
-      },
-    },
+    name: `name`,
+    type: `string`,
+    example: `키치`,
+    description: `테마 필터 조건.없으면 전체 테마 목록`,
+    required: false,
   })
   @ApiOkResponse({
     type: BucketTheme,
