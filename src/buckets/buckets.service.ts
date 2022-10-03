@@ -13,12 +13,10 @@ import { ChallengeService } from 'src/challenge/challenge.service';
 import { UserService } from 'src/user/user.service';
 import { Answer, Bucket, Challenge, User } from 'src/entities';
 import { UserTokenDto } from 'src/user/dto/user-token.dto';
-import { BucketsDetail } from './dto/buckets-detail.dto';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
-import { RewardService } from 'src/reward/reward.service';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
 
 @Injectable()
@@ -197,7 +195,7 @@ export class BucketsService {
     return bucket;
   }
 
-  private async getBucketById(id: string): Promise<Bucket> {
+  async getBucketById(id: string): Promise<Bucket> {
     const bucket = await this.bucketRepository.findOne(id);
     if (!bucket) {
       throw new BadRequestException(`존재하지 않는 챌린지 버킷 입니다.`);
