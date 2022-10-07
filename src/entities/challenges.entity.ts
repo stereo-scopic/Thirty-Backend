@@ -1,4 +1,5 @@
 import {
+  Cascade,
   Collection,
   Entity,
   ManyToOne,
@@ -35,7 +36,7 @@ export class Challenge extends BaseEntity {
     eager: true,
     nullable: true,
   })
-  category: Category;
+  category?: Category;
 
   @ApiProperty({
     type: () => User,
@@ -70,6 +71,10 @@ export class Challenge extends BaseEntity {
   @Property({ nullable: true })
   thumbnail: string;
 
-  @OneToMany(() => Mission, (m) => m.challenge)
+  @OneToMany({
+    entity: () => Mission,
+    mappedBy: (m) => m.challenge,
+    cascade: [Cascade.ALL]
+  })
   missions = new Collection<Mission>(this);
 }

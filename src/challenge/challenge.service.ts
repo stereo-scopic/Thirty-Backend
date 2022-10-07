@@ -71,9 +71,8 @@ export class ChallengeService {
       const mission_ = new Mission(date, detail);
       challenge.missions.add(mission_);
       mission_.challenge = challenge;
-      await this.missionRepository.persistAndFlush(mission_);
     }
-
+    await this.challengeRepository.persistAndFlush(challenge);
     return challenge;
   }
 
@@ -83,22 +82,26 @@ export class ChallengeService {
   ): Promise<Challenge> {
     const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
     createChallengeDto.author = user;
+
     let challenge: Challenge;
-    if (createChallengeDto.category) {
-      const {
-        category: categoryName,
-        ...newChallengeInfo
-      } = createChallengeDto;
-      const category = await this.categoryRepository.findOne({ name: categoryName });
-      const newChallenge: CreateChallengeDto<Category> = {
-        category,
-        ...newChallengeInfo
-      };
-      challenge = this.challengeRepository.create(newChallenge);
+    let category: Category;
+
+    const {
+      category: categoryName,
+      ...newChallengeInfo
+    } = createChallengeDto;
+    if (categoryName) {
+      category = await this.categoryRepository.findOne({ name: categoryName });
     } else {
-      challenge = this.challengeRepository.create(createOwnChallengeDto);
+      category = null;
     }
+    const newChallengeDto: CreateChallengeDto<Category> = {
+      category,
+      ...newChallengeInfo
+    };
+    challenge = this.challengeRepository.create(newChallengeDto);
     await this.challengeRepository.persistAndFlush(challenge);
+
     return this.registerChallengeMissions(
       missions,
       challenge.id,
