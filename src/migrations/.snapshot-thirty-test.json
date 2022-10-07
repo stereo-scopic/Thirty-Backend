@@ -85,6 +85,74 @@
       "columns": {
         "id": {
           "name": "id",
+          "type": "serial",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "current_timestamp",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "current_timestamp",
+          "mappedType": "datetime"
+        },
+        "detail": {
+          "name": "detail",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "illust": {
+          "name": "illust",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        }
+      },
+      "name": "stamp",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "stamp_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
@@ -150,8 +218,8 @@
           "default": "current_timestamp",
           "mappedType": "datetime"
         },
-        "type": {
-          "name": "type",
+        "role": {
+          "name": "role",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
@@ -178,6 +246,36 @@
           "primary": false,
           "nullable": true,
           "mappedType": "string"
+        },
+        "is_signed_up": {
+          "name": "is_signed_up",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
+        "signup_at": {
+          "name": "signup_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
         }
       },
       "name": "user",
@@ -292,6 +390,15 @@
           "primary": false,
           "nullable": true,
           "mappedType": "string"
+        },
+        "thumbnail": {
+          "name": "thumbnail",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
         }
       },
       "name": "challenge",
@@ -376,11 +483,11 @@
           "mappedType": "string"
         }
       },
-      "name": "question",
+      "name": "mission",
       "schema": "public",
       "indexes": [
         {
-          "keyName": "question_pkey",
+          "keyName": "mission_pkey",
           "columnNames": [
             "id"
           ],
@@ -391,12 +498,12 @@
       ],
       "checks": [],
       "foreignKeys": {
-        "question_challenge_id_foreign": {
-          "constraintName": "question_challenge_id_foreign",
+        "mission_challenge_id_foreign": {
+          "constraintName": "mission_challenge_id_foreign",
           "columnNames": [
             "challenge_id"
           ],
-          "localTableName": "public.question",
+          "localTableName": "public.mission",
           "referencedColumnNames": [
             "id"
           ],
@@ -514,6 +621,123 @@
             "id"
           ],
           "referencedTableName": "public.challenge",
+          "updateRule": "cascade"
+        }
+      }
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "current_timestamp",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(0)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "current_timestamp",
+          "mappedType": "datetime"
+        },
+        "bucket_id": {
+          "name": "bucket_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "music": {
+          "name": "music",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        },
+        "date": {
+          "name": "date",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "detail": {
+          "name": "detail",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        },
+        "image": {
+          "name": "image",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        },
+        "stamp": {
+          "name": "stamp",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "answer",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "answer_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "answer_bucket_id_foreign": {
+          "constraintName": "answer_bucket_id_foreign",
+          "columnNames": [
+            "bucket_id"
+          ],
+          "localTableName": "public.answer",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.bucket",
           "updateRule": "cascade"
         }
       }
