@@ -16,7 +16,6 @@ import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { LocalAuthGuard } from './guards/local-auth.guards';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
-import { AuthorizedUserDto } from 'src/user/dto/authorized-user.dto';
 import { User } from 'src/entities';
 
 @ApiTags('Auth')
