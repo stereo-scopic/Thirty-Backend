@@ -26,8 +26,6 @@ import {
 } from '@nestjs/swagger';
 import { AnonymousGuard, JwtAuthGuard } from 'src/auth/guards';
 import { CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { ExtractJwt } from 'passport-jwt';
 
 @ApiTags('Challenges')
 @Controller('challenges')
