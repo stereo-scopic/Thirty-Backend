@@ -17,11 +17,27 @@ export class RewardService {
   ) {}
 
   async getUserRewardsList(user: User): Promise<PrizeUserOwnedDto[]> {
-    const allPrizeList: Prize[] = await this.getAllPrizeList();
-    const rewardsListUserHave: Reward[] = await this.getRewardListUserHave(
-      user,
-    );
-    return this.getPrizeObjectWithUserOwned(allPrizeList, rewardsListUserHave);
+    // const allPrizeList: Prize[] = await this.getAllPrizeList();
+    // const rewardsListUserHave: Reward[] = await this.getRewardListUserHave(
+    //   user,
+    // );
+    // return this.getPrizeObjectWithUserOwned(allPrizeList, rewardsListUserHave);
+    return this.em.execute(`
+      select r.id
+           , p.prize_code
+           , p.name
+           , r.created_at
+           , p.illust
+           , case when (select count(*) from reward where prize_code = p.prize_code) > 1 then true
+             else true
+             end as isOwned
+      from prize p
+      left join reward r
+      on p.prize_code = r.prize_code
+      where 1=1
+        and r.user_id = '${user.id}'
+      order by p.id;
+    `);
   }
 
   async getRewardCountByUserId(userId: string): Promise<number> {
@@ -49,9 +65,9 @@ export class RewardService {
     for (const day of fulfilledDays) {
       const prizeCode = 'AT' + day;
 
-      if (await this.isRewardExists(userId, prizeCode)) {
-        return;
-      }
+      // if (await this.isRewardExists(userId, prizeCode)) {
+      //   return;
+      // }
       if (user.continuous_attendance !== Number(day)) {
         continue;
       }
@@ -75,9 +91,9 @@ export class RewardService {
     for (const day of fulfilledDays) {
       const prizeCode: string = 'CH' + day;
 
-      if (await this.isRewardExists(userId, prizeCode)) {
-        return;
-      }
+      // if (await this.isRewardExists(userId, prizeCode)) {
+      //   return;
+      // }
       if (maxAnswerCount != Number(day)) {
         continue;
       }
@@ -106,9 +122,9 @@ export class RewardService {
     for (const num of fulfilledNumber) {
       const prizeCode: string = 'FR' + num;
 
-      if (await this.isRewardExists(userId, prizeCode)) {
-        return;
-      }
+      // if (await this.isRewardExists(userId, prizeCode)) {
+      //   return;
+      // }
       if (relationshipNumber != Number(num)) {
         continue;
       }
@@ -129,22 +145,22 @@ export class RewardService {
   }
 
   private async createReward(userId: string, prizeCode: string): Promise<void> {
-    const reward: Reward = this.rewardRepository.create({
-      user_id: userId,
-      prize_code: prizeCode,
-    });
-    await this.rewardRepository.persistAndFlush(reward);
+    // const reward: Reward = this.rewardRepository.create({
+    //   user_id: userId,
+    //   prize_code: prizeCode,
+    // });
+    // await this.rewardRepository.persistAndFlush(reward);
   }
 
   private async isRewardExists(userId: string, prizeCode: string) {
-    const reward: Reward = await this.rewardRepository.findOne({
-      user_id: userId,
-      prize_code: prizeCode,
-    });
-    if (!reward) {
-      return false;
-    }
-    return true;
+    // const reward: Reward = await this.rewardRepository.findOne({
+    //   user_id: userId,
+    //   prize_code: prizeCode,
+    // });
+    // if (!reward) {
+    //   return false;
+    // }
+    // return true;
   }
 
   private async getRewardResult(userId: string, prizeCode: string) {
@@ -169,35 +185,36 @@ export class RewardService {
     prizes: Prize[],
     rewards: Reward[],
   ): Promise<any> {
-    const userRewardOwnedList: PrizeUserOwnedDto[] = [];
-    let rewardIdx = 0;
+    
+    // const userRewardOwnedList: PrizeUserOwnedDto[] = [];
+    // let rewardIdx = 0;
 
-    for (const _ of prizes) {
-      const {
-        created_at: prizeCreateDate,
-        updated_at: prizeUpdateDate,
-        ...prize
-      } = _;
-      const reward: Reward = rewards[rewardIdx];
+    // for (const _ of prizes) {
+    //   const {
+    //     created_at: prizeCreateDate,
+    //     updated_at: prizeUpdateDate,
+    //     ...prize
+    //   } = _;
+    //   const reward: Reward = rewards[rewardIdx];
 
-      const rewardData = {
-        created_at: null,
-        isOwned: false,
-      };
-      const prizeWithUserOwnedData: PrizeUserOwnedDto = {};
-      if (
-        rewardIdx < rewards.length &&
-        prize.prize_code === reward.prize_code
-      ) {
-        rewardData.created_at = reward.created_at;
-        rewardData.isOwned = true;
-        rewardIdx++;
-      }
-      Object.assign(prizeWithUserOwnedData, prize, rewardData);
-      userRewardOwnedList.push(prizeWithUserOwnedData);
-    }
+    //   const rewardData = {
+    //     created_at: null,
+    //     isOwned: false,
+    //   };
+    //   const prizeWithUserOwnedData: PrizeUserOwnedDto = {};
+    //   if (
+    //     rewardIdx < rewards.length &&
+    //     prize.prize_code === reward.prize_code
+    //   ) {
+    //     rewardData.created_at = reward.created_at;
+    //     rewardData.isOwned = true;
+    //     rewardIdx++;
+    //   }
+    //   Object.assign(prizeWithUserOwnedData, prize, rewardData);
+    //   userRewardOwnedList.push(prizeWithUserOwnedData);
+    // }
 
-    return userRewardOwnedList;
+    // return userRewardOwnedList;
   }
 
   private async getMaximumAnswerCount(userId: string): Promise<number> {

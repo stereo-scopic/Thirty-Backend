@@ -139,16 +139,10 @@ export class BucketsService {
     bucket.count += 1;
     if (bucket.count === 30) {
       bucket.status = BucketStatus.COMPLETED;
-      //TODO: Add Reward
-      // Object.assign(answer, {reward: null});
     }
     this.bucketRepository.persistAndFlush(bucket);
     this.userService.checkUserAttendance(user);
 
-    // if (bucket.count === 30) {
-    //   const rewards = await this.rewardService.checkAndGetReward(user);
-    //   Object.assign(answer, { rewards: rewards });
-    // }
     return {
       bucketStatus: bucket.status
     };
