@@ -5,6 +5,8 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Category, Challenge, Mission } from 'src/entities';
 import { ChallengeService } from './challenge.service';
@@ -19,6 +21,8 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards';
+import { CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
 
 @ApiTags('Challenges')
 @Controller('challenges')
@@ -35,6 +39,15 @@ export class ChallengeController {
   @Get('')
   getAllCategories(): Promise<Category[]> {
     return this.challengeService.getAllCategories();
+  }
+
+  @Post('')
+  @UseGuards(JwtAuthGuard)
+  createOwnChallenge(
+    @Req() req,
+    @Body() createOwnChallengeDto: CreateOwnChallengeDto
+  ): Promise<any> {
+    return this.challengeService.createOwnChallenge(req.user, createOwnChallengeDto);
   }
 
   @ApiOperation({ summary: `카테고리 내 챌린지 목록 조회` })

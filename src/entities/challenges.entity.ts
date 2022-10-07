@@ -33,6 +33,7 @@ export class Challenge extends BaseEntity {
     entity: () => Category,
     onDelete: 'cascade',
     eager: true,
+    nullable: true,
   })
   category: Category;
 

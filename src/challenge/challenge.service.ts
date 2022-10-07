@@ -1,8 +1,9 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Category, Challenge, Mission } from 'src/entities';
+import { Category, Challenge, Mission, User } from 'src/entities';
 import { CreateMissionDto } from './dto/create-mission.dto';
+import { CreateChallengeDto, CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
 
 @Injectable()
 export class ChallengeService {
@@ -26,6 +27,7 @@ export class ChallengeService {
       category: {
         name: categoryName,
       },
+      is_public: true,
     });
   }
 
@@ -58,5 +60,33 @@ export class ChallengeService {
     }
 
     return challenge;
+  }
+
+  async createOwnChallenge(
+    user: User,
+    createOwnChallengeDto: CreateOwnChallengeDto
+  ) {
+    const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
+    createChallengeDto.author = user;
+    let challenge: Challenge;
+    if (createChallengeDto.category) {
+      const {
+        category: categoryName,
+        ...newChallengeInfo
+      } = createChallengeDto;
+      const category = await this.categoryRepository.findOne({ name: categoryName });
+      const newChallenge: CreateChallengeDto<Category> = {
+        category,
+        ...newChallengeInfo
+      };
+      challenge = this.challengeRepository.create(newChallenge);
+    } else {
+      challenge = this.challengeRepository.create(createOwnChallengeDto);
+    }
+    await this.challengeRepository.persistAndFlush(challenge);
+    return this.registerChallengeMissions(
+      missions,
+      challenge.id,
+    );
   }
 }
