@@ -1,4 +1,5 @@
-import { Entity, PrimaryKey, Property, Unique } from '@mikro-orm/core';
+import { Entity, OneToMany, PrimaryKey, Property, Unique } from '@mikro-orm/core';
+import { Reward } from './reward.entity';
 
 @Entity()
 export class Prize {
@@ -24,4 +25,10 @@ export class Prize {
     onUpdate: () => new Date(),
   })
   updated_at: Date = new Date();
+
+  @OneToMany({
+    entity: () => Reward,
+    mappedBy: `prize_code`,
+  })
+  reward: Reward;
 }

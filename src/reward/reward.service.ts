@@ -17,11 +17,6 @@ export class RewardService {
   ) {}
 
   async getUserRewardsList(user: User): Promise<PrizeUserOwnedDto[]> {
-    // const allPrizeList: Prize[] = await this.getAllPrizeList();
-    // const rewardsListUserHave: Reward[] = await this.getRewardListUserHave(
-    //   user,
-    // );
-    // return this.getPrizeObjectWithUserOwned(allPrizeList, rewardsListUserHave);
     return this.em.execute(`
       select r.id
            , p.prize_code
@@ -179,42 +174,6 @@ export class RewardService {
        AND P.PRIZE_CODE = '${prizeCode}'
   `);
     return result;
-  }
-
-  private async getPrizeObjectWithUserOwned(
-    prizes: Prize[],
-    rewards: Reward[],
-  ): Promise<any> {
-    
-    // const userRewardOwnedList: PrizeUserOwnedDto[] = [];
-    // let rewardIdx = 0;
-
-    // for (const _ of prizes) {
-    //   const {
-    //     created_at: prizeCreateDate,
-    //     updated_at: prizeUpdateDate,
-    //     ...prize
-    //   } = _;
-    //   const reward: Reward = rewards[rewardIdx];
-
-    //   const rewardData = {
-    //     created_at: null,
-    //     isOwned: false,
-    //   };
-    //   const prizeWithUserOwnedData: PrizeUserOwnedDto = {};
-    //   if (
-    //     rewardIdx < rewards.length &&
-    //     prize.prize_code === reward.prize_code
-    //   ) {
-    //     rewardData.created_at = reward.created_at;
-    //     rewardData.isOwned = true;
-    //     rewardIdx++;
-    //   }
-    //   Object.assign(prizeWithUserOwnedData, prize, rewardData);
-    //   userRewardOwnedList.push(prizeWithUserOwnedData);
-    // }
-
-    // return userRewardOwnedList;
   }
 
   private async getMaximumAnswerCount(userId: string): Promise<number> {
