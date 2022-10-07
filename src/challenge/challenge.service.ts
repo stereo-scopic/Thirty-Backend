@@ -71,9 +71,8 @@ export class ChallengeService {
       const mission_ = new Mission(date, detail);
       challenge.missions.add(mission_);
       mission_.challenge = challenge;
-      await this.missionRepository.persistAndFlush(mission_);
     }
-
+    await this.challengeRepository.persistAndFlush(challenge);
     return challenge;
   }
 
