@@ -14,6 +14,9 @@ import { CreateMissionDto } from './dto/create-mission.dto';
 
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
   ApiExcludeEndpoint,
   ApiExtraModels,
   ApiOperation,
@@ -21,8 +24,10 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards';
+import { AnonymousGuard, JwtAuthGuard } from 'src/auth/guards';
 import { CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { ExtractJwt } from 'passport-jwt';
 
 @ApiTags('Challenges')
 @Controller('challenges')
@@ -41,16 +46,24 @@ export class ChallengeController {
     return this.challengeService.getAllCategories();
   }
 
+  @ApiOperation({ summary: `나만의 챌린지 생성` })
+  @ApiBearerAuth()
+  @ApiBody({ type: CreateOwnChallengeDto })
+  @ApiCreatedResponse({ type: Challenge })
   @Post('')
   @UseGuards(JwtAuthGuard)
   createOwnChallenge(
     @Req() req,
     @Body() createOwnChallengeDto: CreateOwnChallengeDto
-  ): Promise<any> {
+  ): Promise<Challenge> {
     return this.challengeService.createOwnChallenge(req.user, createOwnChallengeDto);
   }
 
-  @ApiOperation({ summary: `카테고리 내 챌린지 목록 조회` })
+  @ApiOperation({ 
+    summary: `카테고리 내 챌린지 목록 조회`,
+    description: `Header에 Bearer Authentication 추가시 해당 user가 만든 챌린지 포함해서 조회`
+  })
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: `Return Challenges Of Category`,
@@ -58,10 +71,12 @@ export class ChallengeController {
     isArray: true,
   })
   @Get('/:category')
+  @UseGuards(AnonymousGuard)
   getChallengeByName(
+    @Req() req,
     @Param('category') categoryName: string,
   ): Promise<Challenge[]> {
-    return this.challengeService.getChellengesByCategoryName(categoryName);
+    return this.challengeService.getChellengesByCategoryName(categoryName, req.user);
   }
 
   @ApiOperation({ summary: `챌린지 상세 조회` })

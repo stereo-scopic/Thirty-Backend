@@ -40,10 +40,24 @@ export class Challenge extends BaseEntity {
   @ApiProperty({
     type: () => User,
     nullable: true,
-  })
+    example: {
+      id: `adfa8b368bcd91d3d830`,
+      nickname: `해리`,
+    }
+  })  
   @ManyToOne({
     entity: () => User,
+    joinColumn: `author_id`,
+    referenceColumnName: `id`,
     nullable: true,
+    eager: true,
+    serializer: (value) => {
+      if (!value) return null;
+      return {
+        id: value.id,
+        nickname: value.nickname,
+      }
+    },
   })
   author: User;
 

@@ -22,13 +22,28 @@ export class ChallengeService {
 
   async getChellengesByCategoryName(
     categoryName: string,
+    user?: User,
   ): Promise<Challenge[]> {
-    return this.challengeRepository.find({
+    const defaultChallenges = await this.challengeRepository.find({
       category: {
         name: categoryName,
       },
       is_public: true,
     });
+    if (!user) {
+      return defaultChallenges;
+    }
+
+    const userOwnChallenges = await this.challengeRepository.find({
+      category: {
+        name: categoryName,
+      },
+      author: user
+    })
+    return [
+      ...defaultChallenges,
+      ...userOwnChallenges,
+    ];
   }
 
   async getChallengeById(challengeId: number): Promise<Challenge> {
@@ -65,7 +80,7 @@ export class ChallengeService {
   async createOwnChallenge(
     user: User,
     createOwnChallengeDto: CreateOwnChallengeDto
-  ) {
+  ): Promise<Challenge> {
     const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
     createChallengeDto.author = user;
     let challenge: Challenge;
