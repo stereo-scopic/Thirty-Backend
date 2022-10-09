@@ -23,15 +23,14 @@ export class RewardService {
            , p.name
            , r.created_at
            , p.illust
-           , case when (select count(*) from reward where prize_code = p.prize_code) > 1 then true
+           , case when r.id is null then false
              else true
              end as isOwned
-      from prize p
-      left join reward r
-      on p.prize_code = r.prize_code
-      where 1=1
-        and r.user_id = '${user.id}'
-      order by p.id;
+        from prize p
+        left join reward r
+          on p.prize_code = r.prize_code
+         and r.user_id = '${user.id}'
+       order by p.prize_code asc;
     `);
   }
 
