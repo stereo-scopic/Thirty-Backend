@@ -18,6 +18,7 @@ import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
+import { RewardService } from 'src/reward/reward.service';
 
 @Injectable()
 export class BucketsService {
@@ -27,11 +28,12 @@ export class BucketsService {
     private readonly userService: UserService,
     @Inject(forwardRef(() => ChallengeService))
     private readonly challengeService: ChallengeService,
-    private readonly em: EntityManager,
+    private readonly rewardService: RewardService,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
     private readonly answerRepository: EntityRepository<Answer>,
+    private readonly em: EntityManager,
   ) {}
 
   async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
@@ -111,6 +113,7 @@ export class BucketsService {
   async getCompletedChallengeBucketCount(user: User): Promise<number> {
     return this.bucketRepository.count({
       user: user,
+      status: BucketStatus.COMPLETED,
     });
   }
 
@@ -139,12 +142,19 @@ export class BucketsService {
     bucket.count += 1;
     if (bucket.count === 30) {
       bucket.status = BucketStatus.COMPLETED;
+      const completedChallengeBucketCount =
+        await this.getCompletedChallengeBucketCount(user);
+      this.rewardService.getRewardChallenge(
+        user,
+        completedChallengeBucketCount + 1,
+      );
     }
     this.bucketRepository.persistAndFlush(bucket);
-    this.userService.checkUserAttendance(user);
+    await this.userService.checkUserAttendance(user);
+    await this.rewardService.getRewardAttendance(user);
 
     return {
-      bucketStatus: bucket.status
+      bucketStatus: bucket.status,
     };
   }
 
