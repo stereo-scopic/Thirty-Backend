@@ -21,6 +21,7 @@ export class RewardService {
            , p.prize_code
            , p.name
            , r.created_at
+           , p.description
            , p.illust
            , case when r.id is null then false
              else true
