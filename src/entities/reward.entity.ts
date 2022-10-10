@@ -8,8 +8,10 @@ export class Reward extends BaseEntity {
   @Property()
   user_id: string;
 
-  @Property()
-  prize_code: number;
+  @Property({
+    persist: true,
+  })
+  prize_code: string;
 
   @ManyToOne({
     entity: () => Prize,
