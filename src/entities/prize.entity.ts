@@ -1,11 +1,4 @@
-import {
-  Entity,
-  OneToMany,
-  PrimaryKey,
-  Property,
-  Unique,
-} from '@mikro-orm/core';
-import { Reward } from './reward.entity';
+import { Entity, PrimaryKey, Property, Unique } from '@mikro-orm/core';
 
 @Entity()
 export class Prize {
@@ -15,10 +8,13 @@ export class Prize {
 
   @Property()
   @Unique()
-  prize_code: string;
+  prizeCode: string;
 
   @Property()
   name: string;
+
+  @Property({ nullable: true })
+  description: string;
 
   @Property()
   illust: string;
