@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from 'src/email/email.service';
 import { User } from 'src/entities';
 import { PushService } from 'src/push/push.service';
 import { UserService } from 'src/user/user.service';
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly pushService: PushService,
+    private readonly emailService: EmailService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -35,11 +37,18 @@ export class AuthService {
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {
     const user = await this.userService.register(registerUserDto);
     this.pushService.initUserSchedule(user);
+    this.emailService.signup(registerUserDto.email);
     return user;
   }
 
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
+  }
+
+  async activateUser(email: string): Promise<User> {
+    const user: User = await this.userService.getByEmail(email);
+    await this.userService.activateUser(user);
+    return user;
   }
 
   async generateAccessToken(user: User) {

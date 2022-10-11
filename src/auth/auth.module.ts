@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PushModule } from 'src/push/push.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PushModule } from 'src/push/push.module';
     PassportModule,
     ConfigModule,
     PushModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

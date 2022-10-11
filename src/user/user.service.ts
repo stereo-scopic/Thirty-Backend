@@ -50,12 +50,17 @@ export class UserService {
     wrap(user).assign({
       ...userDataObject,
       password: await crypt.getHashedValue(password),
-      isSignedUp: true,
       signup_at: new Date(),
     });
     this.userRepository.flush();
 
     return user;
+  }
+
+  async activateUser(user: User): Promise<boolean> {
+    user.isSignedUp = true;
+    await this.userRepository.flush();
+    return true;
   }
 
   async getUserProfileById(id: string): Promise<any> {
