@@ -14,6 +14,7 @@ import { RewardModule } from 'src/reward/reward.module';
     MikroOrmModule.forFeature([Bucket, User, Challenge, Answer]),
     forwardRef(() => UserModule),
     BucketsModule,
+    RewardModule,
     AuthModule,
     CaslModule,
     forwardRef(() => ChallengeModule),

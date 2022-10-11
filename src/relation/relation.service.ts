@@ -4,6 +4,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Relation, User } from 'src/entities';
 import { NotificationTypeCode } from 'src/notification/notification-type.enum';
 import { NotificationService } from 'src/notification/notification.service';
+import { RewardService } from 'src/reward/reward.service';
 import { CreateResponseRSVPDto } from './dto/create-resopnse-rsvp.dto';
 import { RelationStatus } from './relation-stautus.enum';
 
@@ -13,6 +14,7 @@ export class RelationService {
     @InjectRepository(Relation)
     private readonly relationRepository: EntityRepository<Relation>,
     private readonly notificationService: NotificationService,
+    private readonly rewardService: RewardService,
   ) {}
 
   async getRelationList(user: User): Promise<Relation[]> {
@@ -87,6 +89,20 @@ export class RelationService {
       status,
     );
     await this.relationRepository.flush();
+
+    // Get Reward
+    if (status === RelationStatus.CONFIRMED) {
+      // create user's reward
+      this.rewardService.getRewardRelation(
+        userId,
+        await this.getRelationCount(userId),
+      );
+      // create friend's reward
+      this.rewardService.getRewardRelation(
+        friendId,
+        await this.getRelationCount(friendId),
+      );
+    }
   }
 
   async disconnect(userId: string, friendId: string): Promise<void> {
