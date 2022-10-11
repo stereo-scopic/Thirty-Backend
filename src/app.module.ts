@@ -10,7 +10,7 @@ import { UserModule } from './user/user.module';
 import { ChallengeModule } from './challenge/challenge.module';
 import { MikroORM } from '@mikro-orm/core';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CaslModule } from './casl/casl.module';
 import { RewardModule } from './reward/reward.module';
 import { NoticeModule } from './notice/notice.module';
@@ -19,6 +19,10 @@ import { NotificationModule } from './notification/notification.module';
 import { CommunityModule } from './community/community.module';
 import { ThemeModule } from './theme/theme.module';
 import { PushModule } from './push/push.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { EmailModule } from './email/email.module';
+import path from 'path';
 
 @Module({
   imports: [
@@ -26,6 +30,25 @@ import { PushModule } from './push/push.module';
     ConfigModule.forRoot({
       envFilePath: `${process.cwd()}/.${process.env.NODE_ENV}.env`,
       isGlobal: true,
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          transport: `smtps://${config.get('EMAIL_AUTH_ADDRESS')}:${config.get('EMAIL_AUTH_PASSWORD')}@${config.get('EMAIL_HOST')}`,
+          defaults: {
+            from: `${config.get('EMAIL_FROM_USER')} <${config.get('EMAIL_FROM_USER')}>`
+          },
+          template: {
+            dir: path.join(__dirname, '/templates/'),
+            adapter: new EjsAdapter(),
+            options: {
+              strict: true,
+            }
+          }
+        }
+      }
     }),
     AuthModule,
     BucketsModule,
@@ -39,6 +62,7 @@ import { PushModule } from './push/push.module';
     CommunityModule,
     ThemeModule,
     PushModule,
+    EmailModule,
   ],
 })
 export class AppModule implements NestModule, OnModuleInit {
