@@ -3,8 +3,8 @@
 <h2>회원가입을 완료해주세요.</h2>
 <div>
     <p>안녕하세요. 써티입니다.</p>
-    <p>아래 버튼을 눌러 회원가입을 완료해주세요.</p>
-    <form action="/activateUser" method="POST">
-        <button type="submit">이메일 인증</button>
-    </form>
+    <p>아래 인증 번호를 입력하여 회원가입을 완료해주세요.</p>
 </div>
+<% if (code) { %>
+    <h2><%= code %></h2>
+<% } %>
