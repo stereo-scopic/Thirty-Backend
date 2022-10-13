@@ -1,8 +1,10 @@
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
-import { User } from 'src/entities';
+import { AuthCode, User } from 'src/entities';
 import { PushService } from 'src/push/push.service';
 import { UserService } from 'src/user/user.service';
 import { crypt } from 'src/utils/crypt';
@@ -18,6 +20,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly pushService: PushService,
     private readonly emailService: EmailService,
+    @InjectRepository(AuthCode)
+    private readonly codeRepository: EntityRepository<AuthCode>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -35,9 +39,14 @@ export class AuthService {
   }
 
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+    // register user
     const user = await this.userService.register(registerUserDto);
+    // init user push schedule
     this.pushService.initUserSchedule(user);
-    this.emailService.signup(registerUserDto.email);
+    // generate auth code and send email
+    const authCode: number = await this.generateAuthCode(user);
+    this.emailService.signup(registerUserDto.email, authCode);
+
     return user;
   }
 
@@ -97,5 +106,11 @@ export class AuthService {
         'max-age': 0,
       },
     };
+  }
+
+  private async generateAuthCode(user: User): Promise<number> {
+    const authCode = new AuthCode(user);
+    this.codeRepository.persist(authCode);
+    return authCode.code;
   }
 }
