@@ -38,15 +38,16 @@ export class AuthService {
     return user;
   }
 
+  async validateEmail(email: string) {
+    const authCode = await this.generateAuthCode(email);
+    this.emailService.signup(email, authCode);
+  }
+
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {
     // register user
     const user = await this.userService.register(registerUserDto);
     // init user push schedule
     this.pushService.initUserSchedule(user);
-    // generate auth code and send email
-    const authCode: number = await this.generateAuthCode(user);
-    this.emailService.signup(registerUserDto.email, authCode);
-
     return user;
   }
 
@@ -56,7 +57,6 @@ export class AuthService {
 
   async activateUser(email: string): Promise<User> {
     const user: User = await this.userService.getByEmail(email);
-    await this.userService.activateUser(user);
     return user;
   }
 
@@ -108,9 +108,10 @@ export class AuthService {
     };
   }
 
-  private async generateAuthCode(user: User): Promise<number> {
-    const authCode = new AuthCode(user);
-    this.codeRepository.persist(authCode);
+  async generateAuthCode(email: string): Promise<number> {
+    // TODO: 중복됐을 때 code, created_at 변경 로직 추가
+    const authCode = new AuthCode(email);
+    this.codeRepository.assign(authCode, {});
     return authCode.code;
   }
 }

@@ -1,20 +1,10 @@
-import { Entity, OneToOne, PrimaryKey, Property } from "@mikro-orm/core";
-import { User } from "./user.entity";
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 
 @Entity()
 export class AuthCode {
     @PrimaryKey()
     @Property()
-    userId: string;
-
-    @OneToOne({
-        entity: () => User,
-        joinColumn: 'user_id',
-        inverseJoinColumn: 'id',
-        eager: false,
-        persist: false,
-    })
-    user: User;
+    email: string;
 
     @Property({ nullable: false })
     code: number;
@@ -22,10 +12,10 @@ export class AuthCode {
     @Property({ onCreate: () => new Date() })
     created_at: Date;
 
-    constructor(user: User) {
+    constructor(email: string) {
+        this.email = email;
+
         const [min, max] = [100001, 999999];
-        this.user = user;
-        this.userId = user.id;
         this.code = Math.floor(Math.random() * (max - min + 1)) + min;
     }
 }
