@@ -10,6 +10,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PushModule } from 'src/push/push.module';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { AuthCode } from 'src/entities';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -17,6 +20,7 @@ import { PushModule } from 'src/push/push.module';
     PassportModule,
     ConfigModule,
     PushModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,6 +31,7 @@ import { PushModule } from 'src/push/push.module';
         },
       }),
     }),
+    MikroOrmModule.forFeature([AuthCode]),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService, JwtModule],

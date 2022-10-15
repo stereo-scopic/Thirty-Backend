@@ -1,7 +1,15 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/entities';
+import { EmailService } from 'src/email/email.service';
+import { AuthCode, User } from 'src/entities';
 import { PushService } from 'src/push/push.service';
 import { UserService } from 'src/user/user.service';
 import { crypt } from 'src/utils/crypt';
@@ -16,6 +24,9 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly pushService: PushService,
+    private readonly emailService: EmailService,
+    @InjectRepository(AuthCode)
+    private readonly codeRepository: EntityRepository<AuthCode>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -32,14 +43,40 @@ export class AuthService {
     return user;
   }
 
-  async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+  async signUp(registerUserDto: RegisterUserDto): Promise<void> {
+    // register user
     const user = await this.userService.register(registerUserDto);
+    // init user push schedule
     this.pushService.initUserSchedule(user);
-    return user;
+
+    // send verifying user email
+    const authCode = await this.generateAuthCode(registerUserDto.email);
+    this.emailService.signup(registerUserDto.email, authCode);
+
+    return;
   }
 
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
+  }
+
+  async activateUser(email: string, code: number): Promise<User> {
+    const user: User = await this.userService.getByEmail(email);
+    const authCode: AuthCode = await this.codeRepository.findOne({
+      email: email,
+    });
+
+    if (!authCode) {
+      throw new BadRequestException(`만료된 인증번호 입니다.`);
+    } else if (authCode.code !== Number(code)) {
+      throw new BadRequestException(
+        `인증번호가 일치하지 않거나 만료된 인증번호 입니다.`,
+      );
+    }
+
+    this.userService.activateUser(user);
+    this.codeRepository.removeAndFlush(authCode);
+    return user;
   }
 
   async generateAccessToken(user: User) {
@@ -88,5 +125,13 @@ export class AuthService {
         'max-age': 0,
       },
     };
+  }
+
+  async generateAuthCode(email: string): Promise<number> {
+    // TODO: 중복됐을 때 code, created_at 변경 로직 추가
+    const authCode = new AuthCode(email);
+    this.codeRepository.persistAndFlush(authCode);
+    console.log('*************인증번호생성완료*************');
+    return authCode.code;
   }
 }
