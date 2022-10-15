@@ -22,7 +22,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { User } from 'src/entities';
-import { AuthorizedUserDto } from './dto/authorized-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
@@ -36,7 +35,7 @@ export class UserController {
   @ApiOperation({ summary: `프로필 조회` })
   @ApiResponse({
     status: 200,
-    type: AuthorizedUserDto,
+    type: User,
   })
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
@@ -59,7 +58,7 @@ export class UserController {
   })
   @ApiResponse({
     status: 200,
-    type: AuthorizedUserDto,
+    type: User,
   })
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
