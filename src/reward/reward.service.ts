@@ -1,7 +1,7 @@
 import { QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prize, Reward, User } from 'src/entities';
 import { PrizeUserOwnedDto } from './dto/prize-user-owned.dto';
 
@@ -49,8 +49,10 @@ export class RewardService {
     for (const day of fulfilledDays) {
       const prizeCode = 'AT' + day;
 
-      const isRewardExists = await this.isRewardExists(userId, prizeCode);
-      if (isRewardExists) return;
+      try {
+        const isRewardExists = await this.isRewardExists(userId, prizeCode);
+        if (isRewardExists) return;
+      } catch (error) {}
 
       if (user.continuous_attendance !== Number(day)) continue;
       await this.createReward(userId, prizeCode);
@@ -69,8 +71,10 @@ export class RewardService {
     for (const day of fulfilledDays) {
       const prizeCode: string = 'CH' + day;
 
-      const isRewardExists = await this.isRewardExists(userId, prizeCode);
-      if (isRewardExists) return;
+      try {
+        const isRewardExists = await this.isRewardExists(userId, prizeCode);
+        if (isRewardExists) return;
+      } catch (error) {}
 
       if (completedBucketCount != Number(day)) continue;
       await this.createReward(userId, prizeCode);
@@ -87,8 +91,10 @@ export class RewardService {
     for (const num of fulfilledNumber) {
       const prizeCode: string = 'FR' + num;
 
-      const isRewardExists = await this.isRewardExists(userId, prizeCode);
-      if (isRewardExists) return;
+      try {
+        const isRewardExists = await this.isRewardExists(userId, prizeCode);
+        if (isRewardExists) return;
+      } catch (error) {}
 
       if (relationshipNumber != Number(num)) continue;
       await this.createReward(userId, prizeCode);
