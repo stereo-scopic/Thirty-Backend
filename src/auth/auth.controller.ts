@@ -14,7 +14,13 @@ import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { LocalAuthGuard } from './guards/local-auth.guards';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from 'src/entities';
 
@@ -25,11 +31,7 @@ export class AuthController {
 
   @ApiOperation({ summary: `회원가입` })
   @ApiBody({ type: RegisterUserDto })
-  @ApiResponse({
-    status: 201,
-    description: `회원가입 성공`,
-    type: User,
-  })
+  @ApiCreatedResponse()
   @Post('/signup')
   @UseGuards(JwtAuthGuard)
   async signup(@Req() req, @Body() registerUserDto: RegisterUserDto) {
@@ -76,6 +78,30 @@ export class AuthController {
     return {
       access_token: access_token,
     };
+  }
+
+  @ApiOperation({ summary: `이메일 인증번호 인증` })
+  @ApiBody({
+    schema: {
+      properties: {
+        email: {
+          type: `string`,
+          example: `ss@ss.com`,
+        },
+        code: {
+          type: `number`,
+          example: `123456`,
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({ type: User })
+  @Post('/activate')
+  activateUser(
+    @Body('email') email: string,
+    @Body('code') code: number,
+  ): Promise<User> {
+    return this.authService.activateUser(email, code);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,6 +1,11 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
@@ -38,25 +43,39 @@ export class AuthService {
     return user;
   }
 
-  async validateEmail(email: string) {
-    const authCode = await this.generateAuthCode(email);
-    this.emailService.signup(email, authCode);
-  }
-
-  async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+  async signUp(registerUserDto: RegisterUserDto): Promise<void> {
     // register user
     const user = await this.userService.register(registerUserDto);
     // init user push schedule
     this.pushService.initUserSchedule(user);
-    return user;
+
+    // send verifying user email
+    const authCode = await this.generateAuthCode(registerUserDto.email);
+    this.emailService.signup(registerUserDto.email, authCode);
+
+    return;
   }
 
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
   }
 
-  async activateUser(email: string): Promise<User> {
+  async activateUser(email: string, code: number): Promise<User> {
     const user: User = await this.userService.getByEmail(email);
+    const authCode: AuthCode = await this.codeRepository.findOne({
+      email: email,
+    });
+
+    if (!authCode) {
+      throw new BadRequestException(`만료된 인증번호 입니다.`);
+    } else if (authCode.code !== Number(code)) {
+      throw new BadRequestException(
+        `인증번호가 일치하지 않거나 만료된 인증번호 입니다.`,
+      );
+    }
+
+    this.userService.activateUser(user);
+    this.codeRepository.removeAndFlush(authCode);
     return user;
   }
 
@@ -111,7 +130,8 @@ export class AuthService {
   async generateAuthCode(email: string): Promise<number> {
     // TODO: 중복됐을 때 code, created_at 변경 로직 추가
     const authCode = new AuthCode(email);
-    this.codeRepository.assign(authCode, {});
+    this.codeRepository.persistAndFlush(authCode);
+    console.log('*************인증번호생성완료*************');
     return authCode.code;
   }
 }
