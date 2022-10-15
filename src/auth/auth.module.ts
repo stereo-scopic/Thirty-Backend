@@ -10,6 +10,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PushModule } from 'src/push/push.module';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { AuthCode } from 'src/entities';
 import { EmailModule } from 'src/email/email.module';
 
 @Module({
@@ -29,6 +31,7 @@ import { EmailModule } from 'src/email/email.module';
         },
       }),
     }),
+    MikroOrmModule.forFeature([AuthCode]),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService, JwtModule],

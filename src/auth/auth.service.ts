@@ -1,8 +1,10 @@
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
-import { User } from 'src/entities';
+import { AuthCode, User } from 'src/entities';
 import { PushService } from 'src/push/push.service';
 import { UserService } from 'src/user/user.service';
 import { crypt } from 'src/utils/crypt';
@@ -18,6 +20,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly pushService: PushService,
     private readonly emailService: EmailService,
+    @InjectRepository(AuthCode)
+    private readonly codeRepository: EntityRepository<AuthCode>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -34,10 +38,16 @@ export class AuthService {
     return user;
   }
 
+  async validateEmail(email: string) {
+    const authCode = await this.generateAuthCode(email);
+    this.emailService.signup(email, authCode);
+  }
+
   async signUp(registerUserDto: RegisterUserDto): Promise<User> {
+    // register user
     const user = await this.userService.register(registerUserDto);
+    // init user push schedule
     this.pushService.initUserSchedule(user);
-    this.emailService.signup(registerUserDto.email);
     return user;
   }
 
@@ -47,7 +57,6 @@ export class AuthService {
 
   async activateUser(email: string): Promise<User> {
     const user: User = await this.userService.getByEmail(email);
-    await this.userService.activateUser(user);
     return user;
   }
 
@@ -97,5 +106,12 @@ export class AuthService {
         'max-age': 0,
       },
     };
+  }
+
+  async generateAuthCode(email: string): Promise<number> {
+    // TODO: 중복됐을 때 code, created_at 변경 로직 추가
+    const authCode = new AuthCode(email);
+    this.codeRepository.assign(authCode, {});
+    return authCode.code;
   }
 }
