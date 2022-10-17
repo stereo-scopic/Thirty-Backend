@@ -1,7 +1,14 @@
-import { Entity, PrimaryKey, PrimaryKeyType, Property } from '@mikro-orm/core';
+import {
+  Entity,
+  ManyToOne,
+  PrimaryKey,
+  PrimaryKeyType,
+  Property,
+} from '@mikro-orm/core';
 import { RelationStatus } from 'src/relation/relation-stautus.enum';
 
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './user.entity';
 
 @Entity()
 export class Relation {
@@ -21,6 +28,26 @@ export class Relation {
     nullable: false,
   })
   friendId: string;
+
+  @ApiProperty({
+    name: `friendNickname`,
+    type: `string`,
+    example: `오가닉그린`,
+    description: `친구 닉네임`,
+  })
+  @ManyToOne({
+    entity: () => User,
+    joinColumn: `friend_id`,
+    referenceColumnName: `id`,
+    serializedName: `friendNickname`,
+    serializer: (value) => {
+      if (!value) return;
+      return value.nickname;
+    },
+    persist: false,
+    eager: true,
+  })
+  friend: User;
 
   @ApiProperty({
     example: 'confirmed',
