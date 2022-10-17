@@ -47,7 +47,7 @@ export class AuthService {
     // register user
     const user = await this.userService.register(registerUserDto);
     // init user push schedule
-    this.pushService.initUserSchedule(user);
+    await this.pushService.initUserSchedule(user);
 
     // send verifying user email
     const authCode = await this.generateAuthCode(registerUserDto.email);
@@ -130,7 +130,16 @@ export class AuthService {
   async generateAuthCode(email: string): Promise<number> {
     // TODO: 중복됐을 때 code, created_at 변경 로직 추가
     const authCode = new AuthCode(email);
-    this.codeRepository.persistAndFlush(authCode);
+    try {
+      await this.codeRepository.persistAndFlush(authCode);
+    } catch (error) {
+      // duplicate unique key
+      if (error.code == 23505)
+        throw new BadRequestException(
+          `이미 가입된 이메일 입니다. 관리자에게 문의하세요. [authcode]`,
+        );
+    }
+
     console.log('*************인증번호생성완료*************');
     return authCode.code;
   }
