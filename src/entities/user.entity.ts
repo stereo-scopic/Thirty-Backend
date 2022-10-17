@@ -1,10 +1,18 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Cascade,
+  Collection,
+  Entity,
+  OneToMany,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core';
 import { Role } from '../user/user-role.enum';
 import { UserVisiblity } from '../user/user-visibility.enum';
 
 import * as crypto from 'crypto';
 import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Bucket } from './buckets.entity';
 
 @Entity()
 export class User {
@@ -105,6 +113,13 @@ export class User {
     hidden: true,
   })
   deleted_at: Date;
+
+  @OneToMany({
+    entity: () => Bucket,
+    mappedBy: (b) => b.user,
+    cascade: [Cascade.ALL],
+  })
+  buckets = new Collection<Bucket>(this);
 
   constructor(uuid: string, token: string) {
     this.uuid = uuid;

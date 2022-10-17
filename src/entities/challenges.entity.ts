@@ -44,8 +44,8 @@ export class Challenge extends BaseEntity {
     example: {
       id: `adfa8b368bcd91d3d830`,
       nickname: `해리`,
-    }
-  })  
+    },
+  })
   @ManyToOne({
     entity: () => User,
     joinColumn: `author_id`,
@@ -57,7 +57,7 @@ export class Challenge extends BaseEntity {
       return {
         id: value.id,
         nickname: value.nickname,
-      }
+      };
     },
   })
   author: User;
@@ -74,7 +74,15 @@ export class Challenge extends BaseEntity {
   @OneToMany({
     entity: () => Mission,
     mappedBy: (m) => m.challenge,
-    cascade: [Cascade.ALL]
+    cascade: [Cascade.ALL],
   })
   missions = new Collection<Mission>(this);
+
+  @Property({
+    default: false,
+    persist: false,
+  })
+  get isOwned(): boolean {
+    return;
+  }
 }
