@@ -103,6 +103,7 @@ export class BucketsService {
      left join answer a 
        on a.bucket_id = b.id
       and a."date" = m."date"
+      and a.is_deleted = false
     where 1=1
       and b.id = '${bucketId}'
     order by m."date";
@@ -175,6 +176,31 @@ export class BucketsService {
     };
   }
 
+  async initializeBucket(
+    user: User,
+    bucketId: string,
+  ): Promise<{ message: string }> {
+    const bucket: Bucket = await this.bucketRepository.findOne({
+      id: bucketId,
+    });
+    this.checkPermission(bucket, user);
+
+    this.answerRepository.nativeUpdate({ bucket: bucket }, { isDeleted: true });
+    bucket.count = 0;
+
+    try {
+      await this.answerRepository.flush();
+      await this.bucketRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+      throw new BadRequestException(
+        `초기화 실패. 관리자에게 문의하세요. | ${error.message}`,
+      );
+    }
+
+    return { message: `챌린지를 초기화 하였습니다.` };
+  }
+
   async getAnswerByBucketAndDate(bucketId: string, date: number): Promise<any> {
     return (
       await this.em.execute(`
@@ -190,6 +216,8 @@ export class BucketsService {
         and  m.date = a.date
       where  b.id = '${bucketId}'
         and  a.date = ${date}
+        and  a.is_deleted = false
+        ;
     `)
     )[0];
   }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -170,10 +171,10 @@ export class BucketsController {
         bucketStatus: {
           type: `string`,
           enum: Object.values(BucketStatus),
-          description: `WRK: 진행중, CMP: 완료, ABD: 중단`
-        }
-      }
-    }
+          description: `WRK: 진행중, CMP: 완료, ABD: 중단`,
+        },
+      },
+    },
   })
   @ApiForbiddenResponse({
     schema: {
@@ -200,6 +201,15 @@ export class BucketsController {
       bucketId,
       createAnswerDto,
     );
+  }
+
+  @Delete('/:bucket_id')
+  @UseGuards(JwtAuthGuard)
+  initializeBucket(
+    @Req() req,
+    @Param('bucket_id') bucketId: string,
+  ): Promise<{ message: string }> {
+    return this.bucketsService.initializeBucket(req.user, bucketId);
   }
 
   @ApiBearerAuth()
