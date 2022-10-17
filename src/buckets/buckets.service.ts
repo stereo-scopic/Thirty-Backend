@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 
@@ -202,14 +203,24 @@ export class BucketsService {
     const bucket = await this.getBucketById(bucketId);
     this.checkPermission(bucket, user);
 
-    this.answerRepository.nativeUpdate(
-      {
-        bucket: bucket,
-        date: date,
-      },
-      updateAnswerDto,
-    );
-    this.answerRepository.flush();
+    const answer = await this.answerRepository.findOne({
+      bucket: bucket,
+      date: date,
+    });
+
+    try {
+      wrap(answer).assign(updateAnswerDto);
+      // Check once more image is deleted
+      // if (answer.image && updateAnswerDto.image == null) {
+      //   answer.image = null;
+      // }
+
+      await this.answerRepository.flush();
+    } catch (error) {
+      throw new BadRequestException(
+        `문제가 발생했습니다. 관리자에게 문의하세요.`,
+      );
+    }
   }
 
   async updateBucketStatus(

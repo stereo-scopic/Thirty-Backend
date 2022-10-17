@@ -47,6 +47,14 @@ export class UserService {
   async register(registerUserDto: RegisterUserDto): Promise<User> {
     const { user, password, ...userDataObject } = registerUserDto;
 
+    const email = userDataObject.email;
+    const isEmailDuplicated = await this.userRepository.findOne({
+      email: email,
+    });
+    if (isEmailDuplicated) {
+      throw new BadRequestException(`이미 가입한 이메일 입니다.`);
+    }
+
     try {
       wrap(user).assign({
         ...userDataObject,
@@ -55,9 +63,7 @@ export class UserService {
       });
       await this.userRepository.flush();
     } catch (error) {
-      // duplicate unique key
-      if (error.code == 23505)
-        throw new BadRequestException(`이미 가입한 이메일 입니다.`);
+      console.log(error.message);
     }
 
     return user;

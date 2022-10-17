@@ -3,7 +3,6 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
-  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -41,6 +40,24 @@ export class NotificationService {
     );
   }
 
+  async isUnreadNotificationLeft(user: User): Promise<{ isLeft: boolean }> {
+    const unreadNotificationCount: number =
+      await this.notificationRepository.count({
+        userId: user.id,
+        is_read: false,
+      });
+
+    if (unreadNotificationCount > 0) return { isLeft: true };
+    return { isLeft: false };
+  }
+
+  async checkReadNotification(user: User): Promise<void> {
+    this.notificationRepository.nativeUpdate(
+      { userId: user.id },
+      { is_read: true },
+    );
+  }
+
   async updateNotification(
     userId: string,
     friendId: string,
@@ -59,19 +76,6 @@ export class NotificationService {
     notification.setNotificationMessage(type);
     notification.type = type;
     await this.notificationRepository.persistAndFlush(notification);
-  }
-
-  async checkReadNotification(
-    user: User,
-    notificationId: number,
-  ): Promise<void> {
-    const notification = await this.getNotificationById(notificationId);
-    if (!(await this.isNotificationOwner(user, notification))) {
-      throw new ForbiddenException(`권한이 없습니다.`);
-    }
-
-    notification.is_read = true;
-    this.notificationRepository.persist(notification);
   }
 
   async saveNotificationAboutRSVP(
