@@ -78,11 +78,4 @@ export class Challenge extends BaseEntity {
   })
   missions = new Collection<Mission>(this);
 
-  @Property({
-    default: false,
-    persist: false,
-  })
-  get isOwned(): boolean {
-    return;
-  }
 }
