@@ -39,7 +39,7 @@ export class BucketsService {
     private readonly em: EntityManager,
   ) {}
 
-  async createBucket(createBucketDto: CreateBucketDto): Promise<{ message: string }> {
+  async createBucket(createBucketDto: CreateBucketDto): Promise<{ bucket: Bucket, message: string }> {
     const { user, challenge: challengeId } = createBucketDto;
     if (await this.isSameChallengeBucketWorkedOn(user, challengeId)) {
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
@@ -50,8 +50,9 @@ export class BucketsService {
     );
     const bucket: Bucket = new Bucket(user, challenge);
     await this.bucketRepository.persistAndFlush(bucket);
-    return { 
-      message: `${challenge.title} 챌린지를 성공적으로 추가했습니다. 해피 써티!`
+    return {
+      bucket: bucket,
+      message: `${challenge.title} 챌린지를 성공적으로 추가했습니다. 해피 써티!`,
     };
   }
 
