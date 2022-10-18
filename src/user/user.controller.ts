@@ -17,6 +17,7 @@ import {
   ApiParam,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { User } from 'src/entities';
@@ -53,9 +54,18 @@ export class UserController {
       },
     },
   })
-  @ApiResponse({
-    status: 200,
-    type: User,
+  @ApiOkResponse({
+    schema: {
+      properties: {
+        user: {
+          type: getSchemaPath(User),
+        },
+        message: {
+          type: `string`,
+          example: `사용자 정보 수정에 성공했습니다.`,
+        }
+      }
+    }
   })
   @UseGuards(JwtAuthGuard)
   async update(

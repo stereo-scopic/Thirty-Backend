@@ -131,7 +131,7 @@ export class UserService {
     } = user;
     return {
       user: safeUserData,
-      message: '닉네임 변경에 성공했습니다.'
+      message: '사용자 정보 수정에 성공했습니다.'
     };
   }
 

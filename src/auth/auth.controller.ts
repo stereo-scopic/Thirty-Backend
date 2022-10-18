@@ -13,6 +13,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { LocalAuthGuard } from './guards/local-auth.guards';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
   ApiOperation,
@@ -29,7 +30,13 @@ export class AuthController {
 
   @ApiOperation({ summary: `회원가입` })
   @ApiBody({ type: RegisterUserDto })
-  @ApiCreatedResponse()
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 전송 성공! 이메일을 인증해주세요.'
+      }
+    }
+  })
   @Post('/signup')
   @UseGuards(JwtAuthGuard)
   async signup(@Req() req, @Body() registerUserDto: RegisterUserDto) {
@@ -97,7 +104,20 @@ export class AuthController {
       },
     },
   })
-  @ApiCreatedResponse({ type: User })
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 인증에 성공했습니다. 웰컴 투 써티!',
+      }
+    }
+  })
+  @ApiBadRequestResponse({
+    schema: {
+      example: {
+        message: '인증번호가 일치하지 않거나 만료된 인증번호 입니다.',
+      }
+    }
+  })
   @Post('/activate')
   activateUser(
     @Body('email') email: string,

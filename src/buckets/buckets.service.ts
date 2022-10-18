@@ -267,7 +267,7 @@ export class BucketsService {
   async updateBucketStatus(
     bucketId: string,
     status: BucketStatus,
-  ): Promise<Bucket> {
+  ): Promise<{ message: string }> {
     const bucket: Bucket = await this.getBucketById(bucketId);
     // TODO: 배포 때 활성화
     // if (!bucket.isPossibleToChangeBucketStatus()) {
@@ -275,7 +275,7 @@ export class BucketsService {
     // }
     bucket.status = status;
     await this.bucketRepository.persistAndFlush(bucket);
-    return bucket;
+    return { message: '성공적으로 챌린지 상태를 변경하였습니다.' };
   }
 
   async getBucketById(id: string): Promise<Bucket> {
