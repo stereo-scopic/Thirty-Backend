@@ -43,24 +43,23 @@ export class AuthService {
     return user;
   }
 
-  async signUp(registerUserDto: RegisterUserDto): Promise<void> {
+  async signUp(registerUserDto: RegisterUserDto): Promise<{ message: string }> {
     // register user
     const user = await this.userService.register(registerUserDto);
     // init user push schedule
     await this.pushService.initUserSchedule(user);
 
     // send verifying user email
-    const authCode = await this.generateAuthCode(registerUserDto.email);
-    this.emailService.signup(registerUserDto.email, authCode);
+    await this.sendVerifyingEmail(registerUserDto.email);
 
-    return;
+    return { message: '이메일 전송 성공! 이메일을 인증해주세요.' };
   }
 
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
   }
 
-  async activateUser(email: string, code: number): Promise<User> {
+  async activateUser(email: string, code: number): Promise<{ message: string }> {
     const user: User = await this.userService.getByEmail(email);
     const authCode: AuthCode = await this.codeRepository.findOne({
       email: email,
@@ -74,9 +73,9 @@ export class AuthService {
       );
     }
 
-    this.userService.activateUser(user);
-    this.codeRepository.removeAndFlush(authCode);
-    return user;
+    await this.userService.activateUser(user);
+    await this.codeRepository.removeAndFlush(authCode);
+    return { message: '이메일 인증에 성공했습니다. 웰컴 투 써티!' };
   }
 
   async generateAccessToken(user: User) {
@@ -127,20 +126,33 @@ export class AuthService {
     };
   }
 
-  async generateAuthCode(email: string): Promise<number> {
-    // TODO: 중복됐을 때 code, created_at 변경 로직 추가
-    const authCode = new AuthCode(email);
+  async sendVerifyingEmail(email: string): Promise<void> {
+    const authCode = await this.generateAuthCode(email);
+    this.emailService.signup(email, authCode);
+  }
+
+  private async generateAuthCode(email: string): Promise<number> {
+    let authCode: AuthCode = null;
+
+    const isAuthCodeExists = await this.codeRepository.findOne({ email: email });
+    if (isAuthCodeExists) {
+      authCode = isAuthCodeExists;
+      authCode.created_at = new Date();
+    } else {
+      authCode = new AuthCode(email);
+    }
+    console.log('*************인증번호생성완료*************');
+
     try {
       await this.codeRepository.persistAndFlush(authCode);
     } catch (error) {
+      console.log('***error:error.message');
       // duplicate unique key
       if (error.code == 23505)
         throw new BadRequestException(
           `이미 가입된 이메일 입니다. 관리자에게 문의하세요. [authcode]`,
         );
     }
-
-    console.log('*************인증번호생성완료*************');
     return authCode.code;
   }
 }

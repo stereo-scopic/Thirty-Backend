@@ -1,13 +1,11 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Get,
   Post,
   Req,
   Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -39,6 +37,11 @@ export class AuthController {
     return this.authService.signUp(registerUserDto);
   }
 
+  @Post('/signup/resend')
+  resendSignupEmail(@Req() req, @Body('email') email: string) {
+    return this.authService.sendVerifyingEmail(email);
+  }
+
   @ApiOperation({ summary: `회원탈퇴` })
   @ApiResponse({
     status: 201,
@@ -63,7 +66,6 @@ export class AuthController {
       },
     },
   })
-  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(LocalAuthGuard)
   async login(
     @Req() req,
@@ -100,7 +102,7 @@ export class AuthController {
   activateUser(
     @Body('email') email: string,
     @Body('code') code: number,
-  ): Promise<User> {
+  ): Promise<{ message: string }> {
     return this.authService.activateUser(email, code);
   }
 
