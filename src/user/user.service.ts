@@ -47,9 +47,8 @@ export class UserService {
   async register(registerUserDto: RegisterUserDto): Promise<User> {
     const { user, password, ...userDataObject } = registerUserDto;
 
-    const email = userDataObject.email;
     const isEmailDuplicated = await this.userRepository.findOne({
-      email: email,
+      email: userDataObject.email,
     });
     if (isEmailDuplicated) {
       throw new BadRequestException(`이미 가입한 이메일 입니다.`);
@@ -122,10 +121,18 @@ export class UserService {
     );
   }
 
-  async update(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(user: User, updateUserDto: UpdateUserDto): Promise<any> {
     wrap(user).assign(updateUserDto);
-    this.userRepository.flush();
-    return user;
+    await this.userRepository.flush();
+    const {
+      refreshToken,
+      password,
+      ...safeUserData
+    } = user;
+    return {
+      user: safeUserData,
+      message: '사용자 정보 수정에 성공했습니다.'
+    };
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {

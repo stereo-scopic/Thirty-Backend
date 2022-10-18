@@ -62,7 +62,7 @@ export class ChallengeController {
   createOwnChallenge(
     @Req() req,
     @Body() createOwnChallengeDto: CreateOwnChallengeDto,
-  ): Promise<Bucket> {
+  ): Promise<{ bucket: Bucket, message: string }> {
     return this.challengeService.createOwnChallenge(
       req.user,
       createOwnChallengeDto,

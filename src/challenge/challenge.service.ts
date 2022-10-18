@@ -80,7 +80,7 @@ export class ChallengeService {
   async createOwnChallenge(
     user: User,
     createOwnChallengeDto: CreateOwnChallengeDto,
-  ): Promise<Bucket> {
+  ): Promise<{ bucket: Bucket, message: string }> {
     const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
 
     // TODO: 배포 전 활성화
