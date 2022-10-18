@@ -7,8 +7,6 @@ import {
   Req,
   Patch,
   Body,
-  UseInterceptors,
-  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -59,12 +57,11 @@ export class UserController {
     status: 200,
     type: User,
   })
-  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
   async update(
     @Req() req,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
+  ): Promise<any> {
     return this.userService.update(req.user, updateUserDto);
   }
 
