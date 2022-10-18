@@ -129,7 +129,10 @@ export class UserService {
       password,
       ...safeUserData
     } = user;
-    return safeUserData;
+    return {
+      user: safeUserData,
+      message: '닉네임 변경에 성공했습니다.'
+    };
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {

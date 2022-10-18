@@ -39,7 +39,7 @@ export class BucketsService {
     private readonly em: EntityManager,
   ) {}
 
-  async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
+  async createBucket(createBucketDto: CreateBucketDto): Promise<{ message: string }> {
     const { user, challenge: challengeId } = createBucketDto;
     if (await this.isSameChallengeBucketWorkedOn(user, challengeId)) {
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
@@ -50,7 +50,9 @@ export class BucketsService {
     );
     const bucket: Bucket = new Bucket(user, challenge);
     await this.bucketRepository.persistAndFlush(bucket);
-    return bucket;
+    return { 
+      message: `${challenge.title} 챌린지를 성공적으로 추가했습니다. 해피 써티!`
+    };
   }
 
   async createNewbieAndBucket(
@@ -180,6 +182,7 @@ export class BucketsService {
 
     return {
       bucketStatus: bucket.status,
+      message: '오늘의 챌린지에 답변 달기 성공!'
     };
   }
 
@@ -205,7 +208,7 @@ export class BucketsService {
       );
     }
 
-    return { message: `챌린지를 초기화 하였습니다.` };
+    return { message: `성공적으로 챌린지를 초기화 하였습니다.` };
   }
 
   async getAnswerByBucketAndDate(bucketId: string, date: number): Promise<any> {
@@ -234,7 +237,7 @@ export class BucketsService {
     bucketId: string,
     date: number,
     updateAnswerDto: UpdateAnswerDto,
-  ) {
+  ): Promise<{ message: string }> {
     const bucket = await this.getBucketById(bucketId);
     this.checkPermission(bucket, user);
 
@@ -256,6 +259,8 @@ export class BucketsService {
         `문제가 발생했습니다. 관리자에게 문의하세요.`,
       );
     }
+
+    return { message: '챌린지 답변 수정에 성공했습니다.' };
   }
 
   async updateBucketStatus(

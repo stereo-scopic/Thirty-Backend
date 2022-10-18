@@ -37,7 +37,7 @@ export class RelationService {
     });
   }
 
-  async sendRSVP(user: User, friendId: string): Promise<Relation> {
+  async sendRSVP(user: User, friendId: string): Promise<{ message: string }> {
     const userId: string = user.id;
     if (userId === friendId) {
       throw new BadRequestException(
@@ -61,19 +61,19 @@ export class RelationService {
     }
 
     // Send Notification To Future Friend
-    this.notificationService.createNotification({
+    await this.notificationService.createNotification({
       userId: friendId,
       type: NotificationTypeCode.RELATION_RSVP,
       relatedUserId: userId,
     });
 
-    return userOwnedRelation;
+    return { message: '성공적으로 친구 신청을 보냈습니다.' };
   }
 
   async responseRSVP(
     userId: string,
     createResponseRSVPDto: CreateResponseRSVPDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { friendId, status } = createResponseRSVPDto;
     if (status === RelationStatus.PENDING) {
       throw new BadRequestException(
@@ -99,19 +99,24 @@ export class RelationService {
     // Get Reward
     if (status === RelationStatus.CONFIRMED) {
       // create user's reward
-      this.rewardService.getRewardRelation(
+      await this.rewardService.getRewardRelation(
         userId,
         await this.getRelationCountByUserId(userId),
       );
       // create friend's reward
-      this.rewardService.getRewardRelation(
+      await this.rewardService.getRewardRelation(
         friendId,
         await this.getRelationCountByUserId(friendId),
       );
     }
+    
+    return { 
+      message: 
+        `성공적으로 친구 신청에 ${(status === RelationStatus.CONFIRMED) ? '수락' : '거절'}하였습니다.`
+      };
   }
 
-  async disconnect(userId: string, friendId: string): Promise<void> {
+  async disconnect(userId: string, friendId: string): Promise<{ message: string }> {
     this.relationRepository.remove(
       await this.getByUserIdAndFriendId(userId, friendId),
     );
@@ -119,6 +124,8 @@ export class RelationService {
       await this.getByUserIdAndFriendId(friendId, userId),
     );
     await this.relationRepository.flush();
+    
+    return { message: '성공적으로 친구를 삭제했습니다.' };
   }
 
   async getByUserIdAndFriendId(

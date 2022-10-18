@@ -57,7 +57,7 @@ export class RelationController {
   async disconnect(
     @Req() req,
     @Body('friendId') objUserId: string,
-  ): Promise<void> {
+  ): Promise<any> {
     return this.relationService.disconnect(req.user.id, objUserId);
   }
 
@@ -90,7 +90,7 @@ export class RelationController {
   async sendRSVP(
     @Req() req,
     @Body('friend') friendId: string,
-  ): Promise<Relation> {
+  ): Promise<{ message: string }> {
     return this.relationService.sendRSVP(req.user, friendId);
   }
 
@@ -124,7 +124,7 @@ export class RelationController {
   async responseRSVP(
     @Req() req,
     @Body() createResponseRSVPDto: CreateResponseRSVPDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.relationService.responseRSVP(
       req.user.id,
       createResponseRSVPDto,

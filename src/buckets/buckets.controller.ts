@@ -114,7 +114,7 @@ export class BucketsController {
   createExistingUserBucket(
     @Req() req,
     @Body('challenge') challenge: number,
-  ): Promise<Bucket> {
+  ): Promise<{ message: string }> {
     const user = req.user;
     return this.bucketsService.createBucket({ user, challenge });
   }
