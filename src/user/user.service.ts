@@ -45,29 +45,45 @@ export class UserService {
   }
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
-    const { user, ...userDataObject } = registerUserDto;
+    const { user, password, ...userDataObject } = registerUserDto;
 
-    userDataObject.password = await crypt.getHashedValue(
-      registerUserDto.password,
-    );
-    Object.assign(userDataObject, {
-      isSignedUp: true,
-      signup_at: new Date(),
+    const isEmailDuplicated = await this.userRepository.findOne({
+      email: userDataObject.email,
     });
-    wrap(user).assign(userDataObject);
-    this.userRepository.flush();
+    if (isEmailDuplicated) {
+      throw new BadRequestException(`이미 가입한 이메일 입니다.`);
+    }
+
+    try {
+      wrap(user).assign({
+        ...userDataObject,
+        password: await crypt.getHashedValue(password),
+        signup_at: new Date(),
+      });
+      await this.userRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+    }
 
     return user;
   }
 
-  async getUserProfileById(id: string): Promise<any> {
-    const user = await this.getById(id);
-    const rewardCount = await this.rewardService.getRewardCountByUserId(id);
+  async activateUser(user: User): Promise<boolean> {
+    user.isSignedUp = true;
+    await this.userRepository.flush();
+    return true;
+  }
+
+  async getUserProfileById(user: User): Promise<any> {
+    const {
+      password, refreshToken, ...safeUserData
+    } = user;
+    const rewardCount = await this.rewardService.getRewardCountByUserId(user.id);
     const completedChallengeCount =
       await this.bucketService.getCompletedChallengeBucketCount(user);
-    const relationCount = await this.relationService.getRelationCount(id);
+    const relationCount = await this.relationService.getRelationCountByUserId(user.id);
     return {
-      user: user,
+      user: safeUserData,
       rewardCount: rewardCount,
       completedChallengeCount: completedChallengeCount,
       relationCount: relationCount,
@@ -105,10 +121,18 @@ export class UserService {
     );
   }
 
-  async update(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(user: User, updateUserDto: UpdateUserDto): Promise<any> {
     wrap(user).assign(updateUserDto);
-    this.userRepository.flush();
-    return user;
+    await this.userRepository.flush();
+    const {
+      refreshToken,
+      password,
+      ...safeUserData
+    } = user;
+    return {
+      user: safeUserData,
+      message: '사용자 정보 수정에 성공했습니다.'
+    };
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {

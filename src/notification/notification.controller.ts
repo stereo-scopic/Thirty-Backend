@@ -33,14 +33,25 @@ export class NotificationController {
   @ApiOperation({ summary: `알림 읽음 처리` })
   @ApiCreatedResponse()
   @ApiForbiddenResponse()
-  @Post('/:notification_id')
-  async checkReadNotification(
-    @Req() req,
-    @Param('notification_id') notificationId: number,
-  ): Promise<void> {
-    return this.notificationService.checkReadNotification(
-      req.user,
-      notificationId,
-    );
+  @Post('')
+  async checkReadNotification(@Req() req): Promise<void> {
+    return this.notificationService.checkReadNotification(req.user);
+  }
+
+  @ApiOperation({ summary: `안 읽은 알림 있는지 여부` })
+  @ApiOkResponse({
+    schema: {
+      properties: {
+        isLeft: {
+          type: `boolean`,
+          example: true,
+          description: `true: 안 읽은 알림 있음 / false: 없음`,
+        },
+      },
+    },
+  })
+  @Get('/unread')
+  isUnreadNotificationLeft(@Req() req): Promise<{ isLeft: boolean }> {
+    return this.notificationService.isUnreadNotificationLeft(req.user);
   }
 }

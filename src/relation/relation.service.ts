@@ -1,9 +1,15 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { Relation, User } from 'src/entities';
 import { NotificationTypeCode } from 'src/notification/notification-type.enum';
 import { NotificationService } from 'src/notification/notification.service';
+import { RewardService } from 'src/reward/reward.service';
 import { CreateResponseRSVPDto } from './dto/create-resopnse-rsvp.dto';
 import { RelationStatus } from './relation-stautus.enum';
 
@@ -12,7 +18,9 @@ export class RelationService {
   constructor(
     @InjectRepository(Relation)
     private readonly relationRepository: EntityRepository<Relation>,
+    @Inject(forwardRef(() => NotificationService))
     private readonly notificationService: NotificationService,
+    private readonly rewardService: RewardService,
   ) {}
 
   async getRelationList(user: User): Promise<Relation[]> {
@@ -22,14 +30,14 @@ export class RelationService {
     });
   }
 
-  async getRelationCount(userId: string): Promise<number> {
+  async getRelationCountByUserId(userId: string): Promise<number> {
     return this.relationRepository.count({
       userId: userId,
       status: RelationStatus.CONFIRMED,
     });
   }
 
-  async sendRSVP(user: User, friendId: string): Promise<Relation> {
+  async sendRSVP(user: User, friendId: string): Promise<{ message: string }> {
     const userId: string = user.id;
     if (userId === friendId) {
       throw new BadRequestException(
@@ -53,19 +61,19 @@ export class RelationService {
     }
 
     // Send Notification To Future Friend
-    this.notificationService.createNotification({
+    await this.notificationService.createNotification({
       userId: friendId,
       type: NotificationTypeCode.RELATION_RSVP,
       relatedUserId: userId,
     });
 
-    return userOwnedRelation;
+    return { message: '성공적으로 친구 신청을 보냈습니다.' };
   }
 
   async responseRSVP(
     userId: string,
     createResponseRSVPDto: CreateResponseRSVPDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { friendId, status } = createResponseRSVPDto;
     if (status === RelationStatus.PENDING) {
       throw new BadRequestException(
@@ -87,9 +95,28 @@ export class RelationService {
       status,
     );
     await this.relationRepository.flush();
+
+    // Get Reward
+    if (status === RelationStatus.CONFIRMED) {
+      // create user's reward
+      await this.rewardService.getRewardRelation(
+        userId,
+        await this.getRelationCountByUserId(userId),
+      );
+      // create friend's reward
+      await this.rewardService.getRewardRelation(
+        friendId,
+        await this.getRelationCountByUserId(friendId),
+      );
+    }
+    
+    return { 
+      message: 
+        `성공적으로 친구 신청에 ${(status === RelationStatus.CONFIRMED) ? '수락' : '거절'}하였습니다.`
+      };
   }
 
-  async disconnect(userId: string, friendId: string): Promise<void> {
+  async disconnect(userId: string, friendId: string): Promise<{ message: string }> {
     this.relationRepository.remove(
       await this.getByUserIdAndFriendId(userId, friendId),
     );
@@ -97,6 +124,8 @@ export class RelationService {
       await this.getByUserIdAndFriendId(friendId, userId),
     );
     await this.relationRepository.flush();
+    
+    return { message: '성공적으로 친구를 삭제했습니다.' };
   }
 
   async getByUserIdAndFriendId(

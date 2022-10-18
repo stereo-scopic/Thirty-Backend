@@ -52,12 +52,18 @@ export class RelationController {
       },
     },
   })
-  @ApiOkResponse()
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: '성공적으로 친구를 삭제했습니다.',
+      }
+    }
+  })
   @Delete('')
   async disconnect(
     @Req() req,
     @Body('friendId') objUserId: string,
-  ): Promise<void> {
+  ): Promise<any> {
     return this.relationService.disconnect(req.user.id, objUserId);
   }
 
@@ -72,50 +78,63 @@ export class RelationController {
       },
     },
   })
-  @ApiCreatedResponse({ type: Relation })
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: `성공적으로 친구 신청을 보냈습니다.`
+      }
+    }
+  })
   @ApiBadRequestResponse({
     schema: {
-      oneOf: [
+      examples: [
         {
-          example: {
-            status: 400,
-            message: `이미 친구 신청을 보냈거나 친구 관계 입니다.`,
-            error: `Bad Request`,
-          },
+          status: 400,
+          message: `이미 친구 신청을 보냈거나 친구 관계 입니다.`,
+          error: `Bad Request`,
         },
-      ],
+        {
+          status: 400,
+          message: `옳지 못한 요청입니다: 요청 유저 ID와 친구 신청 유저 ID 동일.`,
+          error: `Bad Request`,
+        }
+      ]
     },
   })
   @Post('')
   async sendRSVP(
     @Req() req,
-    @Body('friendId') objUserId: string,
-  ): Promise<Relation> {
-    return this.relationService.sendRSVP(req.user, objUserId);
+    @Body('friend') friendId: string,
+  ): Promise<{ message: string }> {
+    return this.relationService.sendRSVP(req.user, friendId);
   }
 
   @ApiOperation({ summary: `친구 요청 응답` })
   @ApiBody({ type: CreateResponseRSVPDto })
   @ApiCreatedResponse({
-    type: Relation,
-    isArray: true,
+    schema: {
+      examples: [
+        {
+          message: '성공적으로 친구 신청에 수락하였습니다.'
+        },
+        {
+          message: '성공적으로 친구 신청에 거절하였습니다.'
+        }
+      ]
+    }
   })
   @ApiBadRequestResponse({
     schema: {
-      oneOf: [
+      examples: [
         {
-          example: {
-            statusCode: 400,
-            message: `존재하지 않는 친구신청 입니다.`,
-            error: `Bad Request`,
-          },
+          statusCode: 400,
+          message: `존재하지 않는 친구신청 입니다.`,
+          error: `Bad Request`,
         },
         {
-          example: {
-            statusCode: 400,
-            message: `대기 상태(PENDING)로는 수정 불가능합니다.`,
-            error: `Bad Request`,
-          },
+          statusCode: 400,
+          message: `대기 상태(PENDING)로는 수정 불가능합니다.`,
+          error: `Bad Request`,
         },
       ],
     },
@@ -124,7 +143,7 @@ export class RelationController {
   async responseRSVP(
     @Req() req,
     @Body() createResponseRSVPDto: CreateResponseRSVPDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.relationService.responseRSVP(
       req.user.id,
       createResponseRSVPDto,

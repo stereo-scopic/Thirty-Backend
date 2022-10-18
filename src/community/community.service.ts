@@ -1,6 +1,7 @@
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/entities';
+import { RelationStatus } from 'src/relation/relation-stautus.enum';
 import { CommunityResponse } from './community-response.type';
 
 @Injectable()
@@ -34,7 +35,9 @@ export class CommunityService {
         inner  join "user" u
            on  b.user_id = u.id
         where  1=1
+          and  a.is_deleted = false
           and  r.user_id = '${user.id}'
+          and  r.status = '${RelationStatus.CONFIRMED}'
           and  u.visibility != 'PRIVATE'
         order  by a.created_at DESC
         ;
@@ -69,6 +72,7 @@ export class CommunityService {
         inner  join "user" u
            on  b.user_id = u.id
         where  1=1
+          and  a.is_deleted = false
           and  u.visibility = 'PUBLIC'
         order  by a.created_at DESC
         ;

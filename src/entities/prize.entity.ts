@@ -8,10 +8,13 @@ export class Prize {
 
   @Property()
   @Unique()
-  prize_code: string;
+  prizeCode: string;
 
   @Property()
   name: string;
+
+  @Property({ nullable: true })
+  description: string;
 
   @Property()
   illust: string;

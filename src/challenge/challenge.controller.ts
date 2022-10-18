@@ -24,7 +24,7 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { AnonymousGuard, JwtAuthGuard } from 'src/auth/guards';
+import { JwtAuthGuard } from 'src/auth/guards';
 import { CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
 
 @ApiTags('Challenges')
@@ -54,16 +54,19 @@ export class ChallengeController {
         statusCode: 400,
         message: `미션 30일을 모두 채워야 등록 가능합니다.`,
         error: `Bad Request`,
-      }
-    }
+      },
+    },
   })
   @Post('')
   @UseGuards(JwtAuthGuard)
   createOwnChallenge(
     @Req() req,
-    @Body() createOwnChallengeDto: CreateOwnChallengeDto
-  ): Promise<Bucket> {
-    return this.challengeService.createOwnChallenge(req.user, createOwnChallengeDto);
+    @Body() createOwnChallengeDto: CreateOwnChallengeDto,
+  ): Promise<{ bucket: Bucket, message: string }> {
+    return this.challengeService.createOwnChallenge(
+      req.user,
+      createOwnChallengeDto,
+    );
   }
 
   @ApiOperation({ summary: `카테고리 내 챌린지 목록 조회` })

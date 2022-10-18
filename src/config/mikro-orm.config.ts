@@ -17,6 +17,8 @@ import {
   Notification,
   BucketTheme,
   ExportLog,
+  PushSchedule,
+  AuthCode,
 } from '../entities';
 
 const logger = new Logger('MikroORM');
@@ -44,6 +46,8 @@ export const config: Options = {
     Notification,
     BucketTheme,
     ExportLog,
+    PushSchedule,
+    AuthCode,
   ],
   debug: true,
 

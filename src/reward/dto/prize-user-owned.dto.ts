@@ -26,6 +26,14 @@ export class PrizeUserOwnedDto {
 
   @ApiProperty({
     type: `string`,
+    example: `챌린지를 시작했어요!`,
+    description: `리워드 뱃지 설명`,
+    nullable: true,
+  })
+  description: string;
+
+  @ApiProperty({
+    type: `string`,
     example: `https://thirty-test-s3.s3.ap-northeast-2.amazonaws.com/test/1662636524777kindpng_4469807.png`,
     description: `리워드 일러스트 url`,
     nullable: true,
