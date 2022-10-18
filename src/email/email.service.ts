@@ -22,13 +22,13 @@ export class EmailService {
     ejs.renderFile(
       path.join(__dirname, `/../templates/${templateName}`),
       context,
-      (err, data) => {
+      async (err, data) => {
         if (err) {
           console.log(err);
           return;
         }
         try {
-          this.mailerService.sendMail({
+          await this.mailerService.sendMail({
             to: to,
             subject: subject,
             sender: '써티',
