@@ -58,9 +58,14 @@ export class BucketsService {
   ): Promise<UserTokenDto> {
     const { uuid, challenge } = createNewbieBucketDto;
 
+    // check whether challenge exists before create user
+    await this.challengeService.getChallengeById(challenge);
+
+    // create new user and create new bucket of user
     const user: User = await this.userService.createUser(uuid);
     await this.createBucket({ user, challenge });
 
+    // generate JWT Access Token to stay logged in
     const accessToken = this.authService.getCookieWithJwtAccessToken(user);
     return {
       access_token: accessToken.access_token,
