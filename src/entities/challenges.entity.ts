@@ -38,6 +38,9 @@ export class Challenge extends BaseEntity {
   })
   category?: Category;
 
+  @Property()
+  seq: number;
+
   @ApiProperty({
     type: () => User,
     nullable: true,
@@ -77,5 +80,4 @@ export class Challenge extends BaseEntity {
     cascade: [Cascade.ALL],
   })
   missions = new Collection<Mission>(this);
-
 }
