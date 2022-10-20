@@ -305,7 +305,7 @@ export class BucketsController {
     @Body() updateAnswerDto: UpdateAnswerDto,
     @UploadedFile() imageFile?,
   ): Promise<any> {
-    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
+    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, req.user.id);
     if (uploadedImageUrl) {
       updateAnswerDto.image = uploadedImageUrl;
     }
