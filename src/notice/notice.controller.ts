@@ -16,7 +16,6 @@ import { NoticeService } from './notice.service';
 @ApiBearerAuth()
 @ApiUnauthorizedResponse()
 @Controller('notice')
-@UseGuards(JwtAuthGuard)
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
@@ -49,6 +48,7 @@ export class NoticeController {
     type: Notice,
   })
   @Post('')
+  @UseGuards(JwtAuthGuard)
   async registerNewNotice(
     @Req() req,
     @Body() createNoticeDto: CreateNoticeDto,

@@ -32,12 +32,19 @@ export class ChallengeService {
   async getChellengesByCategoryName(
     categoryName: string,
   ): Promise<Challenge[]> {
-    return this.challengeRepository.find({
-      category: {
-        name: categoryName,
+    return this.challengeRepository.find(
+      {
+        category: {
+          name: categoryName,
+        },
+        is_public: true,
       },
-      is_public: true,
-    });
+      {
+        orderBy: {
+          seq: QueryOrder.ASC,
+        },
+      },
+    );
   }
 
   async getChallengeById(challengeId: number): Promise<Challenge> {
@@ -80,7 +87,7 @@ export class ChallengeService {
   async createOwnChallenge(
     user: User,
     createOwnChallengeDto: CreateOwnChallengeDto,
-  ): Promise<{ bucket: Bucket, message: string }> {
+  ): Promise<{ bucket: Bucket; message: string }> {
     const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
 
     // TODO: 배포 전 활성화
