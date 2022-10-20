@@ -223,7 +223,7 @@ export class BucketsController {
     @Body() createAnswerDto: CreateAnswerDto,
     @UploadedFile() imageFile?,
   ): Promise<any> {
-    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
+    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, req.user.id);
     if (uploadedImageUrl) {
       createAnswerDto.image = uploadedImageUrl;
     }
