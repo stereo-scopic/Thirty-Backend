@@ -55,6 +55,15 @@ export class AuthService {
     return { message: '이메일 전송 성공! 이메일을 인증해주세요.' };
   }
 
+  async signupAsNewbie(registerUserDto: RegisterUserDto): Promise<{ message: string }> {
+    const user: User = await this.userService.createUser(registerUserDto.uuid);
+    registerUserDto.user = user;
+
+    await this.signUp(registerUserDto);
+
+    return { message: '이메일 전송 성공! 이메일을 인증해주세요.' };
+  }
+
   async signout(id: string): Promise<void> {
     return this.userService.setSignoutUser(id);
   }
