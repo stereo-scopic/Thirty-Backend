@@ -19,6 +19,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from 'src/entities';
@@ -42,6 +43,36 @@ export class AuthController {
   async signup(@Req() req, @Body() registerUserDto: RegisterUserDto) {
     registerUserDto.user = req.user;
     return this.authService.signUp(registerUserDto);
+  }
+
+  @ApiOperation({ summary: `온보딩 회원가입` })
+  @ApiBody({
+    schema: {
+      allOf: [
+        {
+          properties: {
+            uuid: {
+              type: `string`,
+              description: `uuid of user`
+            }
+          }
+        },
+        {
+          $ref: getSchemaPath(RegisterUserDto)
+        }
+      ]
+    },
+  })
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 전송 성공! 이메일을 인증해주세요.',
+      },
+    },
+  })
+  @Post('/signup/newbie')
+  async signupAsNewbie(@Req() req, @Body() registerUserDto: RegisterUserDto) {
+    return this.authService.signupAsNewbie(registerUserDto);
   }
 
   @Post('/signup/resend')

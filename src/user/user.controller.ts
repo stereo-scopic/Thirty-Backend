@@ -7,6 +7,7 @@ import {
   Req,
   Patch,
   Body,
+  Post,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -93,5 +94,10 @@ export class UserController {
   @Delete('/:uuid')
   deleteUser(@Param('uuid') uuid: string): Promise<void> {
     return this.userService.deleteUser(uuid);
+  }
+
+  @Post('/password')
+  editPassword(@Body() editPasswordDto) {
+    return this.userService.editPassword(editPasswordDto);
   }
 }

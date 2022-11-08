@@ -163,6 +163,22 @@ export class UserService {
     this.userRepository.persistAndFlush(user);
   }
 
+  async editPassword({ email, password }) {
+    const user = await this.getByEmail(email);
+    wrap(user).assign({
+      password: await crypt.getHashedValue(password)
+    });
+    try {
+      await this.userRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+      throw new BadRequestException(`비밀번호 수정 실패, 관리자에게 문의하세요.`);
+    }
+
+    const { refreshToken, password: _, ...safeUserData } = user;
+    return safeUserData;
+  }
+
   private async removeRefreshToken(user: User) {
     user.refreshToken = null;
     this.userRepository.persistAndFlush(user);

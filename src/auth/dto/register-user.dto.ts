@@ -4,6 +4,8 @@ import { User } from 'src/entities';
 export class RegisterUserDto {
   user?: User;
 
+  uuid?: string;
+
   @ApiProperty({
     example: `example@thirty.com`,
     description: `이메일`,
