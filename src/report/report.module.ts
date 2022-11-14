@@ -1,12 +1,15 @@
-import { Module } from '@nestjs/common';
-import { ReportService } from './report.service';
-import { ReportController } from './report.controller';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { Blocked } from 'src/entities';
+import { Module } from '@nestjs/common';
+import { Blocked, Report } from 'src/entities';
+import { RelationModule } from 'src/relation/relation.module';
+import { ReportService } from './report.service';
 
 @Module({
-  imports: [MikroOrmModule.forFeature([Blocked])],
+  imports: [
+    RelationModule,
+    MikroOrmModule.forFeature([Report, Blocked])
+  ],
+  exports: [ReportService],
   providers: [ReportService],
-  controllers: [ReportController]
 })
 export class ReportModule {}

@@ -16,6 +16,8 @@ import { wrap } from '@mikro-orm/core';
 import { RewardService } from 'src/reward/reward.service';
 import { BucketsService } from 'src/buckets/buckets.service';
 import { RelationService } from 'src/relation/relation.service';
+import { ReportService } from 'src/report/report.service';
+import { CreateReportDto } from 'src/report/dto/create-report.dto';
 
 @Injectable()
 export class UserService {
@@ -28,6 +30,7 @@ export class UserService {
     @Inject(forwardRef(() => BucketsService))
     private readonly bucketService: BucketsService,
     private readonly relationService: RelationService,
+    private readonly reportService: ReportService,
   ) {}
 
   async createUser(uuid: string): Promise<User> {
@@ -177,6 +180,18 @@ export class UserService {
 
     const { refreshToken, password: _, ...safeUserData } = user;
     return safeUserData;
+  }
+
+  async report(user: User, createReportDto: CreateReportDto) {
+    createReportDto.userId = user.id;
+    this.reportService.report(createReportDto);
+  }
+
+  async block(user: User, targetUserId: string) {
+    this.reportService.block({
+      userId: user.id,
+      targetUserId: targetUserId
+    });
   }
 
   private async removeRefreshToken(user: User) {

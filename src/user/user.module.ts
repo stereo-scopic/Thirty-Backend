@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { RewardModule } from 'src/reward/reward.module';
 import { BucketsModule } from 'src/buckets/buckets.module';
 import { RelationModule } from 'src/relation/relation.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RelationModule } from 'src/relation/relation.module';
     RewardModule,
     forwardRef(() => BucketsModule),
     RelationModule,
+    ReportModule,
     MikroOrmModule.forFeature([User]),
   ],
   exports: [UserService],

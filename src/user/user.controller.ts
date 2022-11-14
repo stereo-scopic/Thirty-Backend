@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { User } from 'src/entities';
+import { CreateReportDto } from 'src/report/dto/create-report.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
@@ -99,5 +100,17 @@ export class UserController {
   @Post('/password')
   editPassword(@Body() editPasswordDto) {
     return this.userService.editPassword(editPasswordDto);
+  }
+
+  @Post('/report')
+  @UseGuards(JwtAuthGuard)
+  report(@Req() req, @Body() createReportDto :CreateReportDto) {
+    return this.userService.report(req.user, createReportDto);
+  }
+
+  @Post('/block')
+  @UseGuards(JwtAuthGuard)
+  block(@Req() req, @Body('targetUserId') targetUserId: string) {
+    return this.userService.block(req.user, targetUserId);
   }
 }
