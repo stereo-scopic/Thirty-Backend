@@ -183,11 +183,17 @@ export class UserService {
   }
 
   async report(user: User, createReportDto: CreateBlockDto) {
+    const isTargetUserExists: User = 
+      await this.getById(createReportDto.targetUserId);
+
     createReportDto.userId = user.id;
     return this.blockService.report(createReportDto);
   }
 
   async block(user: User, targetUserId: string) {
+    const isTargetUserExists: User =
+      await this.getById(targetUserId);
+
     return this.blockService.block({
       userId: user.id,
       targetUserId: targetUserId
@@ -195,6 +201,9 @@ export class UserService {
   }
 
   async unblock(user: User, targetUserId: string) {
+    const isTargetUserExists: User =
+      await this.getById(targetUserId);
+
     return this.blockService.unblock({
       userId: user.id,
       targetUserId: targetUserId
