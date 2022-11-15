@@ -22,7 +22,7 @@ import { PushModule } from './push/push.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { EmailModule } from './email/email.module';
-import { ReportModule } from './report/report.module';
+import { BlockModule } from './block/block.module';
 import path from 'path';
 
 @Module({
@@ -64,7 +64,7 @@ import path from 'path';
     ThemeModule,
     PushModule,
     EmailModule,
-    ReportModule,
+    BlockModule,
   ],
 })
 export class AppModule implements NestModule, OnModuleInit {

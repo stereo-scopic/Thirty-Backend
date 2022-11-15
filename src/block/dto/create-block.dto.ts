@@ -1,4 +1,4 @@
-export class CreateReportDto {
+export class CreateBlockDto {
     userId?: string;
     targetUserId: string;
     detail?: string;
