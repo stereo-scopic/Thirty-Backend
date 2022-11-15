@@ -15,3 +15,5 @@ export * from './BucketTheme.entity';
 export * from './ExportLog.entity';
 export * from './push-schedule.entity';
 export * from './auth-code.entity';
+export * from './blocked.entity';
+export * from './report.entity';

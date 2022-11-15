@@ -19,6 +19,8 @@ import {
   ExportLog,
   PushSchedule,
   AuthCode,
+  Blocked,
+  Report,
 } from '../entities';
 
 const logger = new Logger('MikroORM');
@@ -48,6 +50,8 @@ export const config: Options = {
     ExportLog,
     PushSchedule,
     AuthCode,
+    Blocked,
+    Report,
   ],
   debug: true,
 

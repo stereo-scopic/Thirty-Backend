@@ -44,8 +44,9 @@ export class RelationService {
         `옳지 못한 요청입니다: 요청 유저 ID와 친구 신청 유저 ID 동일.`,
       );
     }
-    const userOwnedRelation = new Relation(userId, friendId);
-    const friendOwnedRelelation = new Relation(friendId, userId);
+    const userOwnedRelation = new Relation(userId, friendId, RelationStatus.PENDING);
+    const friendOwnedRelelation = new Relation(friendId, userId, RelationStatus.PENDING);
+
     try {
       await this.relationRepository.persistAndFlush([
         userOwnedRelation,
@@ -126,6 +127,27 @@ export class RelationService {
     await this.relationRepository.flush();
     
     return { message: '성공적으로 친구를 삭제했습니다.' };
+  }
+
+  async block(userId: string, friendId: string) {
+    const relation: Relation = await this.relationRepository.findOne({
+      userId: userId,
+      friendId: friendId,
+    });
+
+    if (relation) {
+      relation.status = RelationStatus.BLOCKED;
+      const targetRelation = await this.getByUserIdAndFriendId(friendId, userId);
+      targetRelation.status = RelationStatus.BLOCKED;
+
+      this.relationRepository.persist([relation, targetRelation]);
+    } else {
+      const sourceRelation = new Relation(userId, friendId, RelationStatus.BLOCKED);
+      const targetRelation = new Relation(friendId, userId, RelationStatus.BLOCKED);
+      this.relationRepository.persist([sourceRelation, targetRelation]);
+    }
+
+    await this.relationRepository.flush();
   }
 
   async getByUserIdAndFriendId(

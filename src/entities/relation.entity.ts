@@ -67,9 +67,10 @@ export class Relation {
 
   [PrimaryKeyType]?: [string, string];
 
-  constructor(userId: string, friendId: string) {
+  constructor(userId: string, friendId: string, status: RelationStatus) {
     this.userId = userId;
     this.friendId = friendId;
-    this.status = RelationStatus.PENDING;
+    this.status = status;
   }
+
 }

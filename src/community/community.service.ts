@@ -87,6 +87,11 @@ export class CommunityService {
           and  b.status != '${BucketStatus.ABANDON}'
           and  a.is_deleted = false
           and  u.visibility = 'PUBLIC'
+          and  not exists ( select 1
+                              from blocked bl
+                             where 1=1
+                               and bl.user_id = '${user.id}'
+                               and b.user_id = bl.target_user_id )
         order  by a.created_at DESC
         ;
     `);

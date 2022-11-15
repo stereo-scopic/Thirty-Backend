@@ -16,6 +16,8 @@ import { wrap } from '@mikro-orm/core';
 import { RewardService } from 'src/reward/reward.service';
 import { BucketsService } from 'src/buckets/buckets.service';
 import { RelationService } from 'src/relation/relation.service';
+import { BlockService } from 'src/block/block.service';
+import { CreateBlockDto } from 'src/block/dto/create-block.dto';
 
 @Injectable()
 export class UserService {
@@ -28,6 +30,7 @@ export class UserService {
     @Inject(forwardRef(() => BucketsService))
     private readonly bucketService: BucketsService,
     private readonly relationService: RelationService,
+    private readonly blockService: BlockService,
   ) {}
 
   async createUser(uuid: string): Promise<User> {
@@ -177,6 +180,34 @@ export class UserService {
 
     const { refreshToken, password: _, ...safeUserData } = user;
     return safeUserData;
+  }
+
+  async report(user: User, createReportDto: CreateBlockDto): Promise<{ message: string }> {
+    const isTargetUserExists: User = 
+      await this.getById(createReportDto.targetUserId);
+
+    createReportDto.userId = user.id;
+    return this.blockService.report(createReportDto);
+  }
+
+  async block(user: User, targetUserId: string) {
+    const isTargetUserExists: User =
+      await this.getById(targetUserId);
+
+    return this.blockService.block({
+      userId: user.id,
+      targetUserId: targetUserId
+    });
+  }
+
+  async unblock(user: User, targetUserId: string) {
+    const isTargetUserExists: User =
+      await this.getById(targetUserId);
+
+    return this.blockService.unblock({
+      userId: user.id,
+      targetUserId: targetUserId
+    });
   }
 
   private async removeRefreshToken(user: User) {
