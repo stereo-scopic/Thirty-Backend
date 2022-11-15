@@ -113,4 +113,10 @@ export class UserController {
   block(@Req() req, @Body('targetUserId') targetUserId: string) {
     return this.userService.block(req.user, targetUserId);
   }
+
+  @Post('/unblock')
+  @UseGuards(JwtAuthGuard)
+  unblock(@Req() req, @Body('targetUserId') targetUserId: string) {
+    return this.userService.unblock(req.user, targetUserId);
+  }
 }
