@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { Blocked } from 'src/entities';
 import { BlockService } from './block.service';
 
 @ApiTags(`Block`)
+@ApiBearerAuth()
 @ApiUnauthorizedResponse()
 @Controller('block')
 @UseGuards(JwtAuthGuard)
