@@ -25,7 +25,9 @@ export class BlockService {
         this.reportRepository.create(createReportDto);
         await this.reportRepository.flush();
 
-        return await this.block(createReportDto);
+        await this.block(createReportDto);
+
+        return { message: `성공적으로 신고하였습니다.` };
     }
 
     async block(createReportDto: CreateBlockDto): Promise<{ message: string }> {
