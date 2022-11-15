@@ -1,4 +1,5 @@
 import { Entity, ManyToOne, Property } from "@mikro-orm/core";
+import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "./BaseEntity";
 import { User } from "./user.entity";
 
@@ -10,6 +11,25 @@ export class Blocked extends BaseEntity{
     @Property({ hidden: true })
     targetUserId: string;
 
+    @ApiProperty({
+        type: () => {
+            return {
+                targetUser: {
+                    type: `object`,
+                        properties: {
+                        id: {
+                            type: `string`,
+                                description: `차단한 사용자 id`,
+                        },
+                        nickname: {
+                            type: `string`,
+                                description: `차단한 사용자 nickname`,
+                        }
+                    }
+                }
+            }
+        }
+    })
     @ManyToOne({
         entity: () => User,
         joinColumn: `target_user_id`,

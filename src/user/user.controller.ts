@@ -13,6 +13,7 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCookieAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -102,18 +103,84 @@ export class UserController {
     return this.userService.editPassword(editPasswordDto);
   }
 
+  @ApiOperation({ summary: `사용자 신고` })
+  @ApiBody({
+    schema: {
+      properties: {
+        targetUserId: {
+          type: `string`,
+          description: `신고하려는 사용자의 id`,
+        },
+        detail: {
+          type: `string`,
+          description: `신고 내용`,
+          nullable: true,
+        }
+      }
+    }
+  })
+  @ApiCreatedResponse({
+    schema: {
+      properties: {
+        message: {
+          type: `string`,
+          example: `성공적으로 신고하였습니다`,
+        }
+      }
+    }
+  })
   @Post('/report')
   @UseGuards(JwtAuthGuard)
-  report(@Req() req, @Body() createBlockDto: CreateBlockDto) {
+  report(@Req() req, @Body() createBlockDto: CreateBlockDto): Promise<{ message: string }> {
     return this.userService.report(req.user, createBlockDto);
   }
 
+  @ApiOperation({ summary: `사용자 차단` })
+  @ApiBody({
+    schema: {
+      properties: {
+        targetUserId: {
+          type: `string`,
+          description: `차단하려는 사용자의 id`
+        }
+      }
+    }
+  })
+  @ApiCreatedResponse({
+    schema: {
+      properties: {
+        message: {
+          example: `성공적으로 차단하였습니다.`,
+        }
+      }
+    }
+  })
+  @ApiBadRequestResponse({
+    schema: {
+      properties: {
+        message: {
+          example: `이미 차단한 유저입니다.`,
+        }
+      }
+    }
+  })
   @Post('/block')
   @UseGuards(JwtAuthGuard)
   block(@Req() req, @Body('targetUserId') targetUserId: string) {
     return this.userService.block(req.user, targetUserId);
   }
 
+  @ApiOperation({ summary: `사용자 차단 해제` })
+  @ApiBody({
+    schema: {
+      properties: {
+        targetUserId: {
+          type: `string`,
+          description: `차단 해제하려는 사용자의 id`
+        }
+      }
+    }
+  })
   @Post('/unblock')
   @UseGuards(JwtAuthGuard)
   unblock(@Req() req, @Body('targetUserId') targetUserId: string) {

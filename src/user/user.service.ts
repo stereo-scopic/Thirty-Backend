@@ -182,7 +182,7 @@ export class UserService {
     return safeUserData;
   }
 
-  async report(user: User, createReportDto: CreateBlockDto) {
+  async report(user: User, createReportDto: CreateBlockDto): Promise<{ message: string }> {
     const isTargetUserExists: User = 
       await this.getById(createReportDto.targetUserId);
 
