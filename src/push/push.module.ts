@@ -6,6 +6,6 @@ import { PushService } from './push.service';
 @Module({
   imports: [MikroOrmModule.forFeature([PushSchedule])],
   exports: [PushService],
-  providers: [PushService]
+  providers: [PushService],
 })
 export class PushModule {}
