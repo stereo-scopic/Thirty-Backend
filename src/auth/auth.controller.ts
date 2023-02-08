@@ -1,20 +1,26 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Get,
   Post,
   Req,
   Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { LocalAuthGuard } from './guards/local-auth.guards';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from 'src/entities';
 
@@ -25,10 +31,12 @@ export class AuthController {
 
   @ApiOperation({ summary: `회원가입` })
   @ApiBody({ type: RegisterUserDto })
-  @ApiResponse({
-    status: 201,
-    description: `회원가입 성공`,
-    type: User,
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 전송 성공! 이메일을 인증해주세요.',
+      },
+    },
   })
   @Post('/signup')
   @UseGuards(JwtAuthGuard)
@@ -37,14 +45,50 @@ export class AuthController {
     return this.authService.signUp(registerUserDto);
   }
 
+  @ApiOperation({ summary: `온보딩 회원가입` })
+  @ApiBody({
+    schema: {
+      allOf: [
+        {
+          properties: {
+            uuid: {
+              type: `string`,
+              description: `uuid of user`
+            }
+          }
+        },
+        {
+          $ref: getSchemaPath(RegisterUserDto)
+        }
+      ]
+    },
+  })
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 전송 성공! 이메일을 인증해주세요.',
+      },
+    },
+  })
+  @Post('/signup/newbie')
+  async signupAsNewbie(@Req() req, @Body() registerUserDto: RegisterUserDto) {
+    return this.authService.signupAsNewbie(registerUserDto);
+  }
+
+  @Post('/signup/resend')
+  resendSignupEmail(@Req() req, @Body('email') email: string) {
+    return this.authService.sendVerifyingEmail(email);
+  }
+
   @ApiOperation({ summary: `회원탈퇴` })
   @ApiResponse({
     status: 201,
     description: `회원탈퇴 성공, response body 없음`,
   })
   @Post('/signout')
-  async signout(@Body('id') id: string): Promise<void> {
-    return this.authService.signout(id);
+  @UseGuards(JwtAuthGuard)
+  async signout(@Req() req): Promise<void> {
+    return this.authService.signout(req.user.id);
   }
 
   @Post('/login')
@@ -61,7 +105,6 @@ export class AuthController {
       },
     },
   })
-  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(LocalAuthGuard)
   async login(
     @Req() req,
@@ -76,6 +119,43 @@ export class AuthController {
     return {
       access_token: access_token,
     };
+  }
+
+  @ApiOperation({ summary: `이메일 인증번호 인증` })
+  @ApiBody({
+    schema: {
+      properties: {
+        email: {
+          type: `string`,
+          example: `ss@ss.com`,
+        },
+        code: {
+          type: `number`,
+          example: `123456`,
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({
+    schema: {
+      example: {
+        message: '이메일 인증에 성공했습니다. 웰컴 투 써티!',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    schema: {
+      example: {
+        message: '인증번호가 일치하지 않거나 만료된 인증번호 입니다.',
+      },
+    },
+  })
+  @Post('/activate')
+  activateUser(
+    @Body('email') email: string,
+    @Body('code') code: number,
+  ): Promise<{ message: string }> {
+    return this.authService.activateUser(email, code);
   }
 
   @UseGuards(JwtAuthGuard)

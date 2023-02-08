@@ -1,10 +1,18 @@
-import { EntityRepository } from '@mikro-orm/core';
+import { EntityRepository, QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { BucketsService } from 'src/buckets/buckets.service';
 import { Bucket, Category, Challenge, Mission, User } from 'src/entities';
 import { CreateMissionDto } from './dto/create-mission.dto';
-import { CreateChallengeDto, CreateOwnChallengeDto } from './dto/create-own-challenge.dto';
+import {
+  CreateChallengeDto,
+  CreateOwnChallengeDto,
+} from './dto/create-own-challenge.dto';
 
 @Injectable()
 export class ChallengeService {
@@ -23,22 +31,59 @@ export class ChallengeService {
 
   async getChellengesByCategoryName(
     categoryName: string,
+    user?: User,
   ): Promise<Challenge[]> {
-    return this.challengeRepository.find({
-      category: {
-        name: categoryName,
+    const challenges = await this.challengeRepository.find(
+      {
+        category: {
+          name: categoryName,
+        },
+        is_public: true,
       },
-      is_public: true,
-    });
+      {
+        orderBy: {
+          seq: QueryOrder.ASC,
+        },
+      },
+    );
+
+    if (!user) {
+      for (const challenge of challenges) {
+        challenge.isUserOwned = false;
+      }
+    } else {
+      // 로그인한 사용자가 해당 챌린지를 진행 중인지 알려준다.
+      for (const challenge of challenges) {
+        const isUserOwned = await this.bucketsService.isUserOwnedChallenge(
+          user,
+          challenge,
+        );
+        challenge.isUserOwned = isUserOwned;
+      }
+    }
+    return challenges;
   }
 
-  async getChallengeById(challengeId: number): Promise<Challenge> {
+  async getChallengeById(challengeId: number): Promise<any> {
     try {
       const challenge = await this.challengeRepository.findOneOrFail(
         { id: challengeId },
-        { populate: ['missions'] },
+        {
+          populate: ['missions'],
+          orderBy: {
+            missions: {
+              date: QueryOrder.ASC,
+            },
+          },
+        },
       );
-      return challenge;
+
+      const bucketCount =
+        await this.bucketsService.getBucketsCountByChallengeId(challenge.id);
+      return {
+        ...challenge,
+        bucketCount: Math.floor((bucketCount + challenge.id - 3.14) * 31.41592),
+      };
     } catch (e) {
       throw new BadRequestException(`존재하지 않는 챌린지 입니다.`);
     }
@@ -64,8 +109,8 @@ export class ChallengeService {
 
   async createOwnChallenge(
     user: User,
-    createOwnChallengeDto: CreateOwnChallengeDto
-  ): Promise<Bucket> {
+    createOwnChallengeDto: CreateOwnChallengeDto,
+  ): Promise<{ bucket: Bucket; message: string }> {
     const { challenge: createChallengeDto, missions } = createOwnChallengeDto;
 
     // TODO: 배포 전 활성화
@@ -73,7 +118,9 @@ export class ChallengeService {
     //   throw new BadRequestException(`미션 30일을 모두 채워야 등록 가능합니다.`);
     // }
 
-    const category = await this.categoryRepository.findOne({ name: `UserOwnChallenge` });
+    const category = await this.categoryRepository.findOne({
+      name: `UserOwnChallenge`,
+    });
     const challenge: Challenge = this.challengeRepository.create({
       ...createChallengeDto,
       category: category,
@@ -82,14 +129,11 @@ export class ChallengeService {
     });
     await this.challengeRepository.persistAndFlush(challenge);
 
-    await this.registerChallengeMissions(
-      missions,
-      challenge.id,
-    );
+    await this.registerChallengeMissions(missions, challenge.id);
 
     return this.bucketsService.createBucket({
       user: user,
-      challenge: challenge.id
-    })
+      challenge: challenge.id,
+    });
   }
 }

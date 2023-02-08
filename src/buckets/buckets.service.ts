@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 
@@ -18,6 +19,8 @@ import { CreateBucketDto } from './dto/create-bucket.dto';
 import { CreateNewbieBucketDto } from './dto/create-newbie-buckets.dto';
 import { BucketStatus } from './bucket-status.enum';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
+import { RewardService } from 'src/reward/reward.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class BucketsService {
@@ -27,14 +30,18 @@ export class BucketsService {
     private readonly userService: UserService,
     @Inject(forwardRef(() => ChallengeService))
     private readonly challengeService: ChallengeService,
-    private readonly em: EntityManager,
+    private readonly rewardService: RewardService,
+    private readonly notficationService: NotificationService,
     @InjectRepository(Bucket)
     private readonly bucketRepository: EntityRepository<Bucket>,
     @InjectRepository(Answer)
     private readonly answerRepository: EntityRepository<Answer>,
+    private readonly em: EntityManager,
   ) {}
 
-  async createBucket(createBucketDto: CreateBucketDto): Promise<any> {
+  async createBucket(
+    createBucketDto: CreateBucketDto,
+  ): Promise<{ bucket: Bucket; message: string }> {
     const { user, challenge: challengeId } = createBucketDto;
     if (await this.isSameChallengeBucketWorkedOn(user, challengeId)) {
       throw new BadRequestException(`이미 진행 중인 챌린지 입니다.`);
@@ -45,7 +52,10 @@ export class BucketsService {
     );
     const bucket: Bucket = new Bucket(user, challenge);
     await this.bucketRepository.persistAndFlush(bucket);
-    return bucket;
+    return {
+      bucket: bucket,
+      message: `${challenge.title} 챌린지를 성공적으로 추가했습니다. 해피 써티!`,
+    };
   }
 
   async createNewbieAndBucket(
@@ -53,9 +63,14 @@ export class BucketsService {
   ): Promise<UserTokenDto> {
     const { uuid, challenge } = createNewbieBucketDto;
 
+    // check whether challenge exists before create user
+    await this.challengeService.getChallengeById(challenge);
+
+    // create new user and create new bucket of user
     const user: User = await this.userService.createUser(uuid);
     await this.createBucket({ user, challenge });
 
+    // generate JWT Access Token to stay logged in
     const accessToken = this.authService.getCookieWithJwtAccessToken(user);
     return {
       access_token: accessToken.access_token,
@@ -98,6 +113,7 @@ export class BucketsService {
      left join answer a 
        on a.bucket_id = b.id
       and a."date" = m."date"
+      and a.is_deleted = false
     where 1=1
       and b.id = '${bucketId}'
     order by m."date";
@@ -110,7 +126,10 @@ export class BucketsService {
 
   async getCompletedChallengeBucketCount(user: User): Promise<number> {
     return this.bucketRepository.count({
-      user: user,
+      user: {
+        id: user.id,
+      },
+      status: BucketStatus.COMPLETED,
     });
   }
 
@@ -139,26 +158,65 @@ export class BucketsService {
     bucket.count += 1;
     if (bucket.count === 30) {
       bucket.status = BucketStatus.COMPLETED;
-      //TODO: Add Reward
-      // Object.assign(answer, {reward: null});
+      const completedChallengeBucketCount =
+        await this.getCompletedChallengeBucketCount(user);
+      await this.rewardService.getRewardChallenge(
+        user,
+        completedChallengeBucketCount + 1,
+      );
+      // send notification
+      this.notficationService.completedBucket(
+        user,
+        bucket.challenge.title,
+        bucket.id,
+      );
+    } else {
+      // send notification
+      this.notficationService.registerAnswer(
+        user,
+        bucket.challenge.title,
+        bucket.id,
+      );
     }
-    this.bucketRepository.persistAndFlush(bucket);
-    this.userService.checkUserAttendance(user);
 
-    // if (bucket.count === 30) {
-    //   const rewards = await this.rewardService.checkAndGetReward(user);
-    //   Object.assign(answer, { rewards: rewards });
-    // }
+    this.bucketRepository.persistAndFlush(bucket);
+    await this.userService.checkUserAttendance(user);
+    await this.rewardService.getRewardAttendance(user);
+
     return {
-      bucketStatus: bucket.status
+      bucketStatus: bucket.status,
+      message: '오늘의 챌린지에 답변 달기 성공!',
     };
   }
 
-  async getAnswerByBucketAndDate(
+  async initializeBucket(
+    user: User,
     bucketId: string,
-    date: number,
-  ): Promise<Answer> {
-    return this.em.execute(`
+  ): Promise<{ message: string }> {
+    const bucket: Bucket = await this.bucketRepository.findOne({
+      id: bucketId,
+    });
+    this.checkPermission(bucket, user);
+
+    this.answerRepository.nativeUpdate({ bucket: bucket }, { isDeleted: true });
+    bucket.count = 0;
+
+    try {
+      await this.answerRepository.flush();
+      await this.bucketRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+      throw new BadRequestException(
+        `초기화 실패. 관리자에게 문의하세요. | ${error.message}`,
+      );
+    }
+
+    return { message: `성공적으로 챌린지를 초기화 하였습니다.` };
+  }
+
+  async getAnswerByBucketAndDate(bucketId: string, date: number): Promise<any> {
+    return (
+      await this.em.execute(`
       select a.*
            , m.detail as mission
        from  answer a
@@ -169,7 +227,12 @@ export class BucketsService {
        left  join mission m
          on  m.challenge_id = c.id
         and  m.date = a.date
-    `);
+      where  b.id = '${bucketId}'
+        and  a.date = ${date}
+        and  a.is_deleted = false
+        ;
+    `)
+    )[0];
   }
 
   async updateAnswer(
@@ -177,24 +240,36 @@ export class BucketsService {
     bucketId: string,
     date: number,
     updateAnswerDto: UpdateAnswerDto,
-  ) {
+  ): Promise<{ message: string }> {
     const bucket = await this.getBucketById(bucketId);
     this.checkPermission(bucket, user);
 
-    this.answerRepository.nativeUpdate(
-      {
-        bucket: bucket,
-        date: date,
-      },
-      updateAnswerDto,
-    );
-    this.answerRepository.flush();
+    const answer = await this.answerRepository.findOne({
+      bucket: bucket,
+      date: date,
+    });
+
+    try {
+      wrap(answer).assign(updateAnswerDto);
+      // Check once more image is deleted
+      // if (answer.image && updateAnswerDto.image == null) {
+      //   answer.image = null;
+      // }
+
+      await this.answerRepository.flush();
+    } catch (error) {
+      throw new BadRequestException(
+        `문제가 발생했습니다. 관리자에게 문의하세요.`,
+      );
+    }
+
+    return { message: '챌린지 답변 수정에 성공했습니다.' };
   }
 
   async updateBucketStatus(
     bucketId: string,
     status: BucketStatus,
-  ): Promise<Bucket> {
+  ): Promise<{ message: string }> {
     const bucket: Bucket = await this.getBucketById(bucketId);
     // TODO: 배포 때 활성화
     // if (!bucket.isPossibleToChangeBucketStatus()) {
@@ -202,7 +277,15 @@ export class BucketsService {
     // }
     bucket.status = status;
     await this.bucketRepository.persistAndFlush(bucket);
-    return bucket;
+    return { message: '성공적으로 챌린지 상태를 변경하였습니다.' };
+  }
+
+  async getBucketsCountByChallengeId(challengeId: number): Promise<number> {
+    return this.bucketRepository.count({
+      challenge: {
+        id: challengeId,
+      },
+    });
   }
 
   async getBucketById(id: string): Promise<Bucket> {
@@ -211,6 +294,21 @@ export class BucketsService {
       throw new BadRequestException(`존재하지 않는 챌린지 버킷 입니다.`);
     }
     return bucket;
+  }
+
+  async isUserOwnedChallenge(user: User, challenge: Challenge) {
+    if (!user) {
+      return false;
+    }
+
+    const bucket = await this.bucketRepository.findOne({
+      user: user,
+      challenge: challenge,
+    });
+    if (!bucket || !bucket.isBucketWorkedOn) {
+      return false;
+    }
+    return true;
   }
 
   private async isSameChallengeBucketWorkedOn(

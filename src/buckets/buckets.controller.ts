@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -35,6 +36,7 @@ import {
   ApiQuery,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
 
@@ -88,24 +90,34 @@ export class BucketsController {
       },
     },
   })
-  @ApiCreatedResponse({ type: Bucket })
-  @ApiBadRequestResponse({
-    status: 400,
+  @ApiCreatedResponse({
     schema: {
       properties: {
-        statusCode: {
-          type: `number`,
-          example: 400,
+        bucket: {
+          type: getSchemaPath(Bucket),
         },
         message: {
           type: `string`,
-          example: `존재하지 않는 챌린지 입니다.`,
+          example: `사진찍기 챌린지를 성공적으로 추가했습니다. 해피 써티!`
+        }
+      }
+    }
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    schema: {
+      examples: [
+        {
+          statusCode: 400,
+          message: '존재하지 않는 챌린지 입니다.',
+          error: 'Bad Request'
         },
-        error: {
-          type: `string`,
-          example: `Bad Request`,
+        {
+          statusCode: 400,
+          message: '이미 진행 중인 챌린지 입니다.',
+          error: 'Bad Request'
         },
-      },
+      ],
     },
   })
   @UseGuards(JwtAuthGuard)
@@ -113,7 +125,7 @@ export class BucketsController {
   createExistingUserBucket(
     @Req() req,
     @Body('challenge') challenge: number,
-  ): Promise<Bucket> {
+  ): Promise<{ message: string }> {
     const user = req.user;
     return this.bucketsService.createBucket({ user, challenge });
   }
@@ -170,10 +182,14 @@ export class BucketsController {
         bucketStatus: {
           type: `string`,
           enum: Object.values(BucketStatus),
-          description: `WRK: 진행중, CMP: 완료, ABD: 중단`
-        }
-      }
-    }
+          description: `WRK: 진행중, CMP: 완료, ABD: 중단`,
+        },
+        message: {
+          type: `string`,
+          example: `오늘의 챌린지에 답변 달기 성공!`,
+        },
+      },
+    },
   })
   @ApiForbiddenResponse({
     schema: {
@@ -184,6 +200,22 @@ export class BucketsController {
       },
     },
   })
+  @ApiBadRequestResponse({
+    schema: {
+      examples: [
+        {
+          statusCode: '400',
+          message: '종료된 챌린지 입니다.',
+          error: 'Bad Request'
+        },
+        {
+          statusCode: '400',
+          message: '이미 진행한 챌린지 날짜 입니다.',
+          error: 'Bad Request'
+        },
+      ]
+    }
+  })
   @UseInterceptors(FileInterceptor('image'))
   async createAnswer(
     @Req() req,
@@ -191,7 +223,7 @@ export class BucketsController {
     @Body() createAnswerDto: CreateAnswerDto,
     @UploadedFile() imageFile?,
   ): Promise<any> {
-    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
+    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, req.user.id);
     if (uploadedImageUrl) {
       createAnswerDto.image = uploadedImageUrl;
     }
@@ -200,6 +232,32 @@ export class BucketsController {
       bucketId,
       createAnswerDto,
     );
+  }
+
+  @ApiOperation({ summary: `챌린지 초기화` })
+  @ApiBadRequestResponse({
+    schema: {
+      example: {
+        statusCode: 400,
+        message: '초기화 실패. 관리자에게 문의하세요.',
+        error: 'Bad Request',
+      }
+    }
+  })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: '성공적으로 챌린지를 초기화 하였습니다.'
+      }
+    }
+  })
+  @Delete('/:bucket_id')
+  @UseGuards(JwtAuthGuard)
+  initializeBucket(
+    @Req() req,
+    @Param('bucket_id') bucketId: string,
+  ): Promise<{ message: string }> {
+    return this.bucketsService.initializeBucket(req.user, bucketId);
   }
 
   @ApiBearerAuth()
@@ -221,7 +279,13 @@ export class BucketsController {
   @ApiOperation({ summary: `답변 수정` })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UpdateAnswerDto })
-  @ApiOkResponse()
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: '챌린지 답변 수정에 성공했습니다.',
+      }
+    }
+  })
   @ApiForbiddenResponse({
     schema: {
       example: {
@@ -241,7 +305,7 @@ export class BucketsController {
     @Body() updateAnswerDto: UpdateAnswerDto,
     @UploadedFile() imageFile?,
   ): Promise<any> {
-    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, 'test');
+    const uploadedImageUrl = await uploadFileOnAwsS3Bucket(imageFile, req.user.id);
     if (uploadedImageUrl) {
       updateAnswerDto.image = uploadedImageUrl;
     }
@@ -266,9 +330,12 @@ export class BucketsController {
       },
     },
   })
-  @ApiResponse({
-    status: 200,
-    type: Bucket,
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: '성공적으로 챌린지 상태를 변경하였습니다.'
+      }
+    }
   })
   @Patch('/:bucket_id/status')
   @UseGuards(JwtAuthGuard)
@@ -276,7 +343,7 @@ export class BucketsController {
     @Req() req,
     @Param('bucket_id') bucketId: string,
     @Body('status') status: BucketStatus,
-  ): Promise<Bucket> {
+  ): Promise<{ message: string }> {
     return this.bucketsService.updateBucketStatus(bucketId, status);
   }
 }

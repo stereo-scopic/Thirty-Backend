@@ -56,6 +56,13 @@ export class Answer extends BaseEntity {
   @Property({ nullable: false })
   stamp: number;
 
+  @Property({
+    default: false,
+    hidden: true,
+    comment: '사용자가 삭제한 답변인지 (초기화 실행)',
+  })
+  isDeleted: boolean;
+
   @ApiProperty({
     example: `챌린지를 시작해보자! "시작이 반이다"`,
     type: `string`,

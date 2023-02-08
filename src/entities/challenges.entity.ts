@@ -38,14 +38,17 @@ export class Challenge extends BaseEntity {
   })
   category?: Category;
 
+  @Property()
+  seq: number;
+
   @ApiProperty({
     type: () => User,
     nullable: true,
     example: {
       id: `adfa8b368bcd91d3d830`,
       nickname: `해리`,
-    }
-  })  
+    },
+  })
   @ManyToOne({
     entity: () => User,
     joinColumn: `author_id`,
@@ -57,7 +60,7 @@ export class Challenge extends BaseEntity {
       return {
         id: value.id,
         nickname: value.nickname,
-      }
+      };
     },
   })
   author: User;
@@ -74,7 +77,16 @@ export class Challenge extends BaseEntity {
   @OneToMany({
     entity: () => Mission,
     mappedBy: (m) => m.challenge,
-    cascade: [Cascade.ALL]
+    cascade: [Cascade.ALL],
   })
   missions = new Collection<Mission>(this);
+
+  @ApiProperty({
+    example: false,
+    description: `사용자가 챌린지 갖고 있는지 여부`,
+  })
+  @Property({
+    persist: false,
+  })
+  isUserOwned: boolean;
 }

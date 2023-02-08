@@ -16,6 +16,8 @@ import { wrap } from '@mikro-orm/core';
 import { RewardService } from 'src/reward/reward.service';
 import { BucketsService } from 'src/buckets/buckets.service';
 import { RelationService } from 'src/relation/relation.service';
+import { BlockService } from 'src/block/block.service';
+import { CreateBlockDto } from 'src/block/dto/create-block.dto';
 
 @Injectable()
 export class UserService {
@@ -28,6 +30,7 @@ export class UserService {
     @Inject(forwardRef(() => BucketsService))
     private readonly bucketService: BucketsService,
     private readonly relationService: RelationService,
+    private readonly blockService: BlockService,
   ) {}
 
   async createUser(uuid: string): Promise<User> {
@@ -45,29 +48,47 @@ export class UserService {
   }
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
-    const { user, ...userDataObject } = registerUserDto;
+    const { user, password, ...userDataObject } = registerUserDto;
 
-    userDataObject.password = await crypt.getHashedValue(
-      registerUserDto.password,
-    );
-    Object.assign(userDataObject, {
-      isSignedUp: true,
-      signup_at: new Date(),
+    const isEmailDuplicated = await this.userRepository.findOne({
+      email: userDataObject.email,
     });
-    wrap(user).assign(userDataObject);
-    this.userRepository.flush();
+    if (isEmailDuplicated) {
+      throw new BadRequestException(`이미 가입한 이메일 입니다.`);
+    }
+
+    try {
+      wrap(user).assign({
+        ...userDataObject,
+        password: await crypt.getHashedValue(password),
+        signup_at: new Date(),
+      });
+      await this.userRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+    }
 
     return user;
   }
 
-  async getUserProfileById(id: string): Promise<any> {
-    const user = await this.getById(id);
-    const rewardCount = await this.rewardService.getRewardCountByUserId(id);
+  async activateUser(user: User): Promise<boolean> {
+    user.isSignedUp = true;
+    await this.userRepository.flush();
+    return true;
+  }
+
+  async getUserProfileById(user: User): Promise<any> {
+    const { password, refreshToken, ...safeUserData } = user;
+    const rewardCount = await this.rewardService.getRewardCountByUserId(
+      user.id,
+    );
     const completedChallengeCount =
       await this.bucketService.getCompletedChallengeBucketCount(user);
-    const relationCount = await this.relationService.getRelationCount(id);
+    const relationCount = await this.relationService.getRelationCountByUserId(
+      user.id,
+    );
     return {
-      user: user,
+      user: safeUserData,
       rewardCount: rewardCount,
       completedChallengeCount: completedChallengeCount,
       relationCount: relationCount,
@@ -105,10 +126,14 @@ export class UserService {
     );
   }
 
-  async update(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(user: User, updateUserDto: UpdateUserDto): Promise<any> {
     wrap(user).assign(updateUserDto);
-    this.userRepository.flush();
-    return user;
+    await this.userRepository.flush();
+    const { refreshToken, password, ...safeUserData } = user;
+    return {
+      user: safeUserData,
+      message: '사용자 정보 수정에 성공했습니다.',
+    };
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
@@ -137,6 +162,54 @@ export class UserService {
   async checkUserAttendance(user: User): Promise<void> {
     user.continuous_attendance += 1;
     this.userRepository.persistAndFlush(user);
+  }
+
+  async editPassword({ email, password }) {
+    const user = await this.getByEmail(email);
+    wrap(user).assign({
+      password: await crypt.getHashedValue(password),
+    });
+    try {
+      await this.userRepository.flush();
+    } catch (error) {
+      console.log(error.message);
+      throw new BadRequestException(
+        `비밀번호 수정 실패, 관리자에게 문의하세요.`,
+      );
+    }
+
+    const { refreshToken, password: _, ...safeUserData } = user;
+    return safeUserData;
+  }
+
+  async report(
+    user: User,
+    createReportDto: CreateBlockDto,
+  ): Promise<{ message: string }> {
+    const isTargetUserExists: User = await this.getById(
+      createReportDto.targetUserId,
+    );
+
+    createReportDto.userId = user.id;
+    return this.blockService.report(createReportDto);
+  }
+
+  async block(user: User, targetUserId: string) {
+    const isTargetUserExists: User = await this.getById(targetUserId);
+
+    return this.blockService.block({
+      userId: user.id,
+      targetUserId: targetUserId,
+    });
+  }
+
+  async unblock(user: User, targetUserId: string) {
+    const isTargetUserExists: User = await this.getById(targetUserId);
+
+    return this.blockService.unblock({
+      userId: user.id,
+      targetUserId: targetUserId,
+    });
   }
 
   private async removeRefreshToken(user: User) {

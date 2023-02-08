@@ -54,16 +54,19 @@ export class ChallengeController {
         statusCode: 400,
         message: `미션 30일을 모두 채워야 등록 가능합니다.`,
         error: `Bad Request`,
-      }
-    }
+      },
+    },
   })
   @Post('')
   @UseGuards(JwtAuthGuard)
   createOwnChallenge(
     @Req() req,
-    @Body() createOwnChallengeDto: CreateOwnChallengeDto
-  ): Promise<Bucket> {
-    return this.challengeService.createOwnChallenge(req.user, createOwnChallengeDto);
+    @Body() createOwnChallengeDto: CreateOwnChallengeDto,
+  ): Promise<{ bucket: Bucket; message: string }> {
+    return this.challengeService.createOwnChallenge(
+      req.user,
+      createOwnChallengeDto,
+    );
   }
 
   @ApiOperation({ summary: `카테고리 내 챌린지 목록 조회` })
@@ -74,10 +77,15 @@ export class ChallengeController {
     isArray: true,
   })
   @Get('/:category')
+  @UseGuards(AnonymousGuard)
   getChallengeByName(
+    @Req() req,
     @Param('category') categoryName: string,
   ): Promise<Challenge[]> {
-    return this.challengeService.getChellengesByCategoryName(categoryName);
+    return this.challengeService.getChellengesByCategoryName(
+      categoryName,
+      req.user,
+    );
   }
 
   @ApiOperation({ summary: `챌린지 상세 조회` })
@@ -93,6 +101,11 @@ export class ChallengeController {
             missions: {
               type: 'array',
               items: { $ref: getSchemaPath(Mission) },
+            },
+            bucketCount: {
+              type: 'number',
+              description: '이 챌린지를 진행하고 있는 수',
+              example: 52,
             },
           },
         },
@@ -121,7 +134,7 @@ export class ChallengeController {
   @Get('/:category/:id')
   getQuestionsByChallengeId(
     @Param('id', ParseIntPipe) challengeId: number,
-  ): Promise<Challenge> {
+  ): Promise<any> {
     return this.challengeService.getChallengeById(challengeId);
   }
 

@@ -1,16 +1,15 @@
 import { QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
+import { EntityRepository } from '@mikro-orm/postgresql';
 import {
   BadRequestException,
-  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Notification, User } from 'src/entities';
+import { Notification, Relation, User } from 'src/entities';
 import { RelationStatus } from 'src/relation/relation-stautus.enum';
-import { UserService } from 'src/user/user.service';
+import { RelationService } from 'src/relation/relation.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import {
   NotificationType,
@@ -22,9 +21,8 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: EntityRepository<Notification>,
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
-    private readonly em: EntityManager
+    @Inject(forwardRef(() => RelationService))
+    private readonly relationService: RelationService,
   ) {}
 
   async createNotification(
@@ -38,8 +36,25 @@ export class NotificationService {
   async getNotificationList(user: User): Promise<Notification[]> {
     return this.notificationRepository.find(
       { userId: user.id },
-      { orderBy: { created_at: QueryOrder.ASC },
-     },
+      { orderBy: { created_at: QueryOrder.DESC } },
+    );
+  }
+
+  async isUnreadNotificationLeft(user: User): Promise<{ isLeft: boolean }> {
+    const unreadNotificationCount: number =
+      await this.notificationRepository.count({
+        userId: user.id,
+        is_read: false,
+      });
+
+    if (unreadNotificationCount > 0) return { isLeft: true };
+    return { isLeft: false };
+  }
+
+  async checkReadNotification(user: User): Promise<void> {
+    this.notificationRepository.nativeUpdate(
+      { userId: user.id },
+      { is_read: true },
     );
   }
 
@@ -61,19 +76,6 @@ export class NotificationService {
     notification.setNotificationMessage(type);
     notification.type = type;
     await this.notificationRepository.persistAndFlush(notification);
-  }
-
-  async checkReadNotification(
-    user: User,
-    notificationId: number,
-  ): Promise<void> {
-    const notification = await this.getNotificationById(notificationId);
-    if (!(await this.isNotificationOwner(user, notification))) {
-      throw new ForbiddenException(`권한이 없습니다.`);
-    }
-
-    notification.is_read = true;
-    this.notificationRepository.persist(notification);
   }
 
   async saveNotificationAboutRSVP(
@@ -104,6 +106,26 @@ export class NotificationService {
     }
   }
 
+  async completedBucket(user: User, challengeName: string, bucketId: string) {
+    this.sendNotificationToFriends(
+      user,
+      NotificationTypeCode.BUCKET_COMPLETED,
+      challengeName,
+      'bucket',
+      bucketId,
+    );
+  }
+
+  async registerAnswer(user: User, challengeName: string, bucketId: string) {
+    this.sendNotificationToFriends(
+      user,
+      NotificationTypeCode.BUCKET_ANSWER,
+      challengeName,
+      'answer',
+      `${bucketId}`,
+    );
+  }
+
   private async getNotificationById(
     notificationId: number,
   ): Promise<Notification> {
@@ -124,5 +146,30 @@ export class NotificationService {
       return true;
     }
     return false;
+  }
+
+  private async sendNotificationToFriends(
+    user: User,
+    type: NotificationType,
+    challengeName: string,
+    sourceName: string,
+    sourceId: string,
+  ) {
+    const relations: Relation[] = await this.relationService.getRelationList(
+      user,
+    );
+    for (const relation of relations) {
+      const { friendId, ..._ } = relation;
+      const notification = new Notification({
+        userId: friendId,
+        relatedUserId: user.id,
+        type: type,
+        sourceName: sourceName,
+        sourceId: sourceId,
+      });
+      notification.setNotificationMessage(type, challengeName);
+      this.notificationRepository.persist(notification);
+    }
+    this.notificationRepository.flush();
   }
 }
